@@ -50,64 +50,6 @@ install-apt-packages:
   depends_on: []
   supercedes: null
   args: *empty_args
-install-snap-packages:
-  description: Install a list of snap packages
-  script: !join [*python_scripts, "installations/package_managers.py"]
-  function: install_snap_packages
-  config_file: installations/install_snap_packages.txt
-  depends_on: []
-  supercedes: null
-  args: *empty_args
-install-pipx-packages:
-  description: Install a list of pipx CLI packages
-  script: !join [*python_scripts, "installations/package_managers.py"]
-  function: install_pipx_packages
-  config_file: installations/install_pipx_packages.txt
-  depends_on: []
-  supercedes: null
-  args: *empty_args
-install-flatpak-packages:
-  description: Install a list of flatpak packages. Optionally makes handy
-    aliases for running the apps.
-  script: !join [*python_scripts, "installations/package_managers.py"]
-  function: install_flatpak_packages
-  config_file: installations/install_flatpak_packages.txt
-  depends_on: []
-  supercedes: null
-  args:
-    allowed: [create-aliases]
-    default: [create-aliases]
-install-npm-packages:
-  description: Install a list of npm packages
-  script: !join [*python_scripts, "installations/package_managers.py"]
-  function: install_npm_packages
-  config_file: installations/install_npm_packages.txt
-  depends_on: []
-  supercedes: null
-  args: *empty_args
-install-js-repositories:
-  description: Clone and install a list of packages using JavaScript. Optionally
-    makes handy aliases for running the apps.
-  script: !join [*python_scripts, "installations/js.py"]
-  function: install_js_repositories
-  config_file: installations/install_js_repositories.txt
-  depends_on: []
-  supercedes: null
-  args:
-    allowed: [create-aliases]
-    default: [create-aliases]
-install-nvidia-driver:
-  description: Install NVIDIA driver (standalone). WARNING - Removes CUDA
-    compatibility!
-  script: !join [*bash_scripts, "installations/nvidia.bash"]
-  function: install_nvidia_driver
-  config_file: null
-  depends_on: []
-  supercedes: null
-  args:
-    allowed: [recommended, latest, nvidia-driver-*, --include-server,
-        --include-open, --prime-select]
-    default: [recommended, --prime-select]
 install-conda:
   description: Install Conda (Miniconda/Anaconda)
   script: !join [*bash_scripts, "installations/conda.bash"]
@@ -156,6 +98,17 @@ install-docker-images:
   depends_on: [install-docker]
   supercedes: null
   args: *empty_args
+install-flatpak-packages:
+  description: Install a list of flatpak packages. Optionally makes handy
+    aliases for running the apps.
+  script: !join [*python_scripts, "installations/package_managers.py"]
+  function: install_flatpak_packages
+  config_file: installations/install_flatpak_packages.txt
+  depends_on: []
+  supercedes: null
+  args:
+    allowed: [create-aliases]
+    default: [create-aliases]
 install-fzf:
   description: Install fzf (allows fuzzy searching in terminal)
   script: !join [*bash_scripts, "installations/simple_installations.bash"]
@@ -164,16 +117,6 @@ install-fzf:
   depends_on: [install-docker]
   supercedes: null
   args: *empty_args
-install-isaacsim:
-  description: Install NVIDIA IsaacSim
-  script: !join [*bash_scripts, "installations/isaac.bash"]
-  function: install_isaacsim
-  config_file: null
-  depends_on: []
-  supercedes: null
-  args:
-    allowed: [latest, 4.*, 5.*]
-    default: [latest]
 install-isaaclab:
   description: Install NVIDIA IsaacLab
   script: !join [*bash_scripts, "installations/isaac.bash"]
@@ -184,6 +127,36 @@ install-isaaclab:
   args:
     allowed: [recommended, latest, v2.*]
     default: [recommended]
+install-isaacsim:
+  description: Install NVIDIA IsaacSim
+  script: !join [*bash_scripts, "installations/isaac.bash"]
+  function: install_isaacsim
+  config_file: null
+  depends_on: []
+  supercedes: null
+  args:
+    allowed: [latest, 4.*, 5.*]
+    default: [latest]
+install-js-repositories:
+  description: Clone and install a list of packages using JavaScript. Optionally
+    makes handy aliases for running the apps.
+  script: !join [*python_scripts, "installations/js.py"]
+  function: install_js_repositories
+  config_file: installations/install_js_repositories.txt
+  depends_on: []
+  supercedes: null
+  args:
+    allowed: [create-aliases]
+    default: [create-aliases]
+install-loki-shell:
+  description: Install Loki shell (allows shared fuzzy searching over different
+    machines (SSH, Docker, ...))
+  script: !join [*bash_scripts, "installations/simple_installations.bash"]
+  function: install_loki_shell
+  config_file: null
+  depends_on: [install-fzf]
+  supercedes: null
+  args: *empty_args
 install-mamba:
   description: Install (Micro)Mamba
   script: !join [*bash_scripts, "installations/conda.bash"]
@@ -194,6 +167,26 @@ install-mamba:
   args:
     allowed: [micromamba, mamba]
     default: [micromamba]
+install-npm-packages:
+  description: Install a list of npm packages
+  script: !join [*python_scripts, "installations/package_managers.py"]
+  function: install_npm_packages
+  config_file: installations/install_npm_packages.txt
+  depends_on: []
+  supercedes: null
+  args: *empty_args
+install-nvidia-driver:
+  description: Install NVIDIA driver (standalone). WARNING - Removes CUDA
+    compatibility!
+  script: !join [*bash_scripts, "installations/nvidia.bash"]
+  function: install_nvidia_driver
+  config_file: null
+  depends_on: []
+  supercedes: null
+  args:
+    allowed: [recommended, latest, nvidia-driver-*, --include-server,
+        --include-open, --prime-select]
+    default: [recommended, --prime-select]
 install-pip-environments:
   description: Install Python pip virtual environments
   script: !join [*python_scripts, "installations/environments.py"]
@@ -202,13 +195,12 @@ install-pip-environments:
   depends_on: []
   supercedes: null
   args: *empty_args
-install-loki-shell:
-  description: Install Loki shell (allows shared fuzzy searching over different
-    machines (SSH, Docker, ...))
-  script: !join [*bash_scripts, "installations/simple_installations.bash"]
-  function: install_loki_shell
-  config_file: null
-  depends_on: [install-fzf]
+install-pipx-packages:
+  description: Install a list of pipx CLI packages
+  script: !join [*python_scripts, "installations/package_managers.py"]
+  function: install_pipx_packages
+  config_file: installations/install_pipx_packages.txt
+  depends_on: []
   supercedes: null
   args: *empty_args
 install-ros:
@@ -222,6 +214,14 @@ install-ros:
     allowed: [latest, --include-future, ardent, bouncy, crystal, dashing,
         eloquent, foxy, galactic, humble, iron, jazzy, kilted, lyrical]
     default: [latest]
+install-snap-packages:
+  description: Install a list of snap packages
+  script: !join [*python_scripts, "installations/package_managers.py"]
+  function: install_snap_packages
+  config_file: installations/install_snap_packages.txt
+  depends_on: []
+  supercedes: null
+  args: *empty_args
 install-vscode:
   description: Install Visual Studio Code
   script: !join [*bash_scripts, "installations/simple_installations.bash"]

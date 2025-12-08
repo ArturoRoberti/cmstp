@@ -27,17 +27,17 @@
 enable_all: true
 
 # In the enabled.yaml file disable all major tasks by default, as users may not want all of them
-install-ros:
-  enabled: false
-install-isaacsim:
-  enabled: false
-install-isaaclab:
-  enabled: false
-install-nvidia-driver:
-  enabled: false
 install-cuda:
   enabled: false
 install-docker:
+  enabled: false
+install-isaaclab:
+  enabled: false
+install-isaacsim:
+  enabled: false
+install-nvidia-driver:
+  enabled: false
+install-ros:
   enabled: false
 
 # Enable dependencies of enabled tasks automatically # Default: false

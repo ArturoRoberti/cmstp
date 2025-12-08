@@ -39,7 +39,7 @@ repos:
     additional_dependencies: [ruamel.yaml]
     files: \.ya?ml$
   - id: format-json
-    name: Auto-format JSON(C) files
+    name: Check & Auto-format JSON(C) files
     entry: python3 .github/scripts/format_jsonc.py
     language: python
     additional_dependencies: [commentjson]
