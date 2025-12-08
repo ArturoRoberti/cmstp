@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=66.1.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cstp"
+version = "0.1.0"
+description = "A test package for pipx with configs, bash scripts, and a CLI"
+authors = [{ name = "Arturo Roberti", email = "arturo.roberti@outlook.com" }]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [ # TODO: pin versions
+    "click",
+    "rich",
+    "distro",
+    "ruamel.yaml",
+    "commentjson",
+    "networkx",
+    "GitPython",
+    "requests",
+    "packaging"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+]
+
+[project.scripts]
+cstp = "cstp.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"cstp" = ["config/**", "scripts/**"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]

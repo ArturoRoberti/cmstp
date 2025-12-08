@@ -16,8 +16,8 @@ jobs:
 
           let valid = true;
 
-          // Check pattern: (feature|fix)/(ubuntu*|macos*|windows*)/<description>
-          const pattern = /^(feature|fix)\/(ubuntu.*|macos.*|windows.*)\/[^/]+$/;
+          // Check pattern: (feature|fix)/<description>
+          const pattern = /^(feature|fix)\/[^/]+$/;
           if (!pattern.test(branch)) {
             console.log("Branch name does not match required pattern.");
             valid = false;
@@ -41,19 +41,6 @@ jobs:
               labels: ["invalid"],
             });
 
-            // // Leave a comment
-            // await github.rest.issues.createComment({
-            //   owner: context.repo.owner,
-            //   repo: context.repo.repo,
-            //   issue_number: prNumber,
-            //   body: "
-            //   🚫 Closing this PR because the source branch name does not follow the required pattern 🚫
-            //   ```
-            //   (feature|fix)/(ubuntu|macos|windows)/<description>
-            //   ```
-            //   Please also delete the remote branch (if appropriate)",
-            // });
-
             // Leave a comment
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -63,7 +50,7 @@ jobs:
                 🚫 Closing this PR because the source branch name does not follow the required pattern 🚫
 
                 \`\`\`
-                (feature|fix)/(ubuntu|macos|windows)/<description>
+                (feature|fix)/<description>
                 \`\`\`
 
                 Please also delete the remote branch (if appropriate)

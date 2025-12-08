@@ -5,7 +5,7 @@ Thank you for your interest in contributing! Your help is appreciated.
 For new feature suggestions or bug fixes, please
 
 1. **Create an issue** using a proposed issue template in the [Issues](https://github.com/ArturoRoberti/cstp/issues) tab
-2. **Create a branch** from any of the `<OS>*/main` branches
+2. **Create a branch** following the naming convention `(feature|fix)/<description>`
 3. **Test your changes** to ensure nothing is broken. Make sure to install and use the pre-commit hooks to ensure no issues on the CI (see the [pre-commit hooks](#pre-commit-hooks) section)
 4. **Commit and push your changes** with clear, descriptive messages
 5. **Create a pull request** using a proposed pull request template in the [Pull Requests](https://github.com/ArturoRoberti/cstp/pulls) tab. As github only allows one PR template (see [issue](https://github.com/refined-github/refined-github/issues/1621)), please follow its instructions guiding you to the other templates. Also, please add applicable labels to your PR.

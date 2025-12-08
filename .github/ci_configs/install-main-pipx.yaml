@@ -1,3 +1,0 @@
-install:
-  main:
-    pipx: true

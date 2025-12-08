@@ -92,15 +92,33 @@ def format_jsonc_file(path: Path):
     lines = [ln + "\n" for ln in path.read_text().splitlines()]
     top, leading, inline, bottom = extract_comments(lines)
 
-    try:
-        data = commentjson.load(path.open())
-    except commentjson.JSONLibraryException:
-        # No JSON content; keep all comments as-is but with zero indentation
+    # Preserve pure comment files
+    non_empty_lines = [ln for ln in lines if ln.strip()]
+    non_comment_lines = [
+        ln for ln in non_empty_lines if not ln.strip().startswith("//")
+    ]
+    if not non_comment_lines:
         out_lines = [ln.lstrip().rstrip() for ln in lines if ln.strip()]
         path.write_text("\n".join(out_lines) + "\n")
         return
+
+    # Try parsing JSONC content to check validity
+    content = path.read_text()
+    try:
+        data = commentjson.loads(content)
+        if not data:
+            # Empty JSON content: keep comments
+            out_lines = [ln.lstrip().rstrip() for ln in lines if ln.strip()]
+            path.write_text("\n".join(out_lines) + "\n")
+            return
+    except commentjson.JSONLibraryException:
+        # Malformed JSON: fail
+        raise
+
+    # Load and format content
     formatted = commentjson.dumps(data, indent=2).splitlines()
 
+    # Re-dump content with comments preserved
     opening, closing = formatted[0], formatted[-1]
     out_lines = top + [opening]
     stack = []
@@ -129,7 +147,8 @@ def format_jsonc_file(path: Path):
         else:
             out_lines.append(line)
 
-    out_lines.append(closing)
+    if len(formatted) > 1:  # Non-empty object
+        out_lines.append(closing)
     out_lines.extend(bottom)
     out_lines = [
         ln for ln in out_lines if ln.strip()
@@ -138,11 +157,20 @@ def format_jsonc_file(path: Path):
 
 
 def main(argv):
-    if not argv:
-        print("Usage: format_jsonc.py file1.jsonc [file2.jsonc ...]")
-        return 0
+    failed_files = []
     for p in argv:
-        format_jsonc_file(Path(p))
+        path = Path(p)
+        try:
+            format_jsonc_file(path)
+        except Exception:
+            failed_files.append(p)
+
+    if failed_files:
+        print("Auto-format JSON(C) files failed for:")
+        for f in failed_files:
+            print(f"  {f}")
+        return 1
+
     return 0
 
 

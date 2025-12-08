@@ -1,0 +1,27 @@
+# The structure under HOME will be placed into the user's home directory, and the
+#     structure under ROOT will be placed into the root directory ("/") (requires '--root' arg to enable).
+# The final values may be
+# - null (indicating an empty directory/file to create)
+#   (type (folder/file) is inferred from if a suffix is present (e.g. '.txt'))
+# - (str) a github repository reference (indicating a repo to clone from)
+#   (see see 'parse_git_ref' function in this repo for expected format)
+# - (str) "path://<source>" (indicating local path to copy from)
+# - (str) "link://<source>" (indicati a symlink to create)
+# Path sources may include the $HOME environment variable, and should otherwise be absolute paths. Relative
+#   paths will be considered relative to the host's current working directory, which is not ideal.
+# Recommended: Add custom executable scripts and aliases in $HOME/.cmds, then add it to PATH
+HOME:
+  .cmds:
+    argparse.bash:
+      https://github.com/nhoffman/argparse-bash.git?depth=1&path=argparse.bash
+  git: null
+  Documents:
+    Personal:
+      CVs: null
+      IDs: null
+    General: null
+    Work: null
+ROOT:
+  usr:
+    bin:
+      python: link:///usr/bin/python3

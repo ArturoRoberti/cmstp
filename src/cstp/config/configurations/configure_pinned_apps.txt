@@ -1,0 +1,7 @@
+# See all apps via 'sudo find / -type f -name "*.desktop"' (recommended: add '| grep -v "docker/overlay"' to exclude container apps)
+# Usually found in '/usr/share/applications', '~/.local/share/applications' or '/var/lib/snapd/desktop/applications'
+brave_brave.desktop
+terminator.desktop
+org.gnome.Nautilus.desktop
+org.gnome.gedit.desktop
+code.desktop

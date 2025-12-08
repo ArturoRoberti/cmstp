@@ -1,0 +1,14 @@
+[
+  {
+    "key": "ctrl+e",
+    "command": "-workbench.action.quickOpen"
+  },
+  {
+    "key": "ctrl+h",
+    "command": "-editor.action.startFindReplaceAction"
+  },
+  {
+    "key": "ctrl+h",
+    "command": "easy-highlight.Highlight"
+  }
+]

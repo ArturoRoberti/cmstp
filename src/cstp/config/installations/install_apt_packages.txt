@@ -1,0 +1,24 @@
+# See all available apt packages at https://packages.ubuntu.com/
+git-lfs
+curl
+wget
+xclip
+unzip
+zip
+lsb-release
+terminator
+nodejs
+npm
+duf
+mesa-utils
+net-tools
+iproute2
+nmap
+nano
+software-properties-common
+build-essential
+gdb
+gedit
+rsync
+nvtop
+htop

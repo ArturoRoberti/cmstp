@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
     - main
-    - ubuntu*/main
-    - macos*/main
-    - windows*/main
     types: [opened, edited, synchronize, reopened] # TODO: Test if this works with pre-commit pushing changes
   workflow_dispatch: null
 

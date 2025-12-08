@@ -1,0 +1,3 @@
+// See all common Docker images at https://hub.docker.com/search?type=image
+// NOTE: "registry" and "tag" are optional, default values are "docker.io" and "latest" respectively
+[]

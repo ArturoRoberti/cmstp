@@ -1,0 +1,4 @@
+// NOTE: Unless explicitly specified, the channel "conda-forge" should also be used for most packages
+// For anyone using ROS, we can recommend RoboStack (https://robostack.github.io/GettingStarted.html),
+//   which provides easy-to-use conda packages for ROS distros.
+{}

@@ -1,0 +1,4 @@
+# See common git repositories at
+# - https://github.com/
+# - https://gitlab.com/
+# - https://bitbucket.org/

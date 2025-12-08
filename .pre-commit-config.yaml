@@ -1,0 +1,84 @@
+repos:
+# Core pre-commit hooks (general purpose)
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-json
+  - id: check-merge-conflict
+  - id: detect-private-key
+# YAML checking with ruamel.yaml (supports custom !join tag)
+- repo: local
+  hooks:
+  - id: check-yaml
+    name: Check YAML with ruamel support
+    entry: python3 .github/scripts/check_yaml.py
+    language: python
+    additional_dependencies: [ruamel.yaml]
+    files: \.ya?ml$
+# Formatting for shell scripts
+- repo: https://github.com/scop/pre-commit-shfmt
+  rev: v3.9.0-1
+  hooks:
+  - id: shfmt
+    args: ["-i", "2", "-ci", "-w"]
+# Shell script linting
+- repo: https://github.com/shellcheck-py/shellcheck-py
+  rev: v0.10.0.1
+  hooks:
+  - id: shellcheck
+    args: ["--severity=error"]
+# Auto-format YAML and JSON(C) files (local hooks)
+- repo: local
+  hooks:
+  - id: format-yaml
+    name: Auto-format YAML files
+    entry: python3 .github/scripts/format_yaml.py
+    language: python
+    additional_dependencies: [ruamel.yaml]
+    files: \.ya?ml$
+  - id: format-json
+    name: Auto-format JSON(C) files
+    entry: python3 .github/scripts/format_jsonc.py
+    language: python
+    additional_dependencies: [commentjson]
+    files: \.jsonc?$
+# Python formatting and linting
+- repo: https://github.com/pre-commit/mirrors-isort
+  rev: v5.10.1
+  hooks:
+  - id: isort
+    language_version: python3
+- repo: https://github.com/psf/black
+  rev: 23.7.0
+  hooks:
+  - id: black
+    language_version: python3
+    args: ["--line-length=79"]
+- repo: https://github.com/pycqa/flake8
+  rev: 7.0.0
+  hooks:
+  - id: flake8
+    language_version: python3
+# C++ formatting and linting
+- repo: local
+  hooks:
+  - id: clang-format
+    name: Format C++ files with clang-format
+    entry: clang-format -i
+    language: system
+    files: \.(hpp|cpp|tpp|cc|h|c)$
+- repo: local
+  hooks:
+  - id: clang-tidy
+    name: Lint C++ files with clang-tidy
+    entry: clang-tidy
+    language: system
+    files: \.(hpp|cpp|tpp|cc|h|c)$
+# Security scan for secrets
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.18.2
+  hooks:
+  - id: gitleaks
+    args: ["--no-banner", "protect", "--staged"]

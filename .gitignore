@@ -1,0 +1,15 @@
+# Logs
+**/logs/
+**/*.log
+
+# Cache
+**/__pycache__/
+**/*.egg-info/
+**/.pytest_cache/
+**/build/
+
+# Virtual Environment
+.venv/
+
+# VSCode
+.vscode/
