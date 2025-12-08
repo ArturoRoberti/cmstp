@@ -1,0 +1,111 @@
+name: Pre-commit checks and auto-fixes
+
+on:
+  workflow_call:
+    secrets:
+      PAT:
+        required: true
+    outputs:
+      HAS_PUSHED:
+        description: "Whether pre-commit pushed changes"
+        value: ${{ jobs.pre-commit.outputs.HAS_PUSHED }}
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    outputs:
+      HAS_PUSHED: ${{ steps.possible-push.outputs.HAS_PUSHED }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.PAT }}
+        fetch-depth: 0
+        ref: ${{ github.head_ref }}
+        persist-credentials: true
+
+      # Set all required environment variables for later steps
+    - name: Set environment variables
+      id: set-env
+      run: |
+        # Set all required environment variables for later steps
+        ## Branch name
+        echo "BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+        ## Possible pre-commit message
+        pre_commit_msg="Auto-format code via pre-commit"
+        echo "PRE_COMMIT_MSG=$pre_commit_msg" >> $GITHUB_ENV
+        ## Skip workflow
+        last_author=$(git log -1 --pretty=format:'%an')
+        last_msg=$(git log -1 --pretty=format:'%B')
+        if [ "$last_author" = "github-actions[bot]" ] && [[ "$last_msg" == "$pre_commit_msg" ]]; then
+          echo "SKIP_WORKFLOW=true" >> $GITHUB_ENV
+        else
+          echo "SKIP_WORKFLOW=false" >> $GITHUB_ENV
+        fi
+
+    - name: Set up Python
+      if: ${{ env.SKIP_WORKFLOW != 'true' }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Cache pre-commit environments
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ runner.os }}-latest
+        restore-keys: pre-commit-${{ runner.os }}-
+
+    - name: Install pre-commit
+      if: ${{ env.SKIP_WORKFLOW != 'true' }}
+      run: pip install pre-commit
+
+      # Set git user for committing changes and ensure we are on the PR branch
+    - name: Configure git
+      if: ${{ env.SKIP_WORKFLOW != 'true' }}
+      run: |
+        # Set git user for committing changes and ensure we are on the PR branch
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -B "$BRANCH" # make sure HEAD is a branch (not detached) and matches the PR source ref
+
+      # Allow fixes to be applied (continue on failure)
+    - name: Run pre-commit (auto-fix pass)
+      if: ${{ env.SKIP_WORKFLOW != 'true' }}
+      run: |
+        # Allow fixes to be applied (continue on failure)
+        pre-commit run --all-files --show-diff-on-failure || true
+
+      # Commit any changes made by pre-commit (if any)
+    - name: Commit auto-fixes (if any)
+      if: ${{ env.SKIP_WORKFLOW != 'true' }}
+      run: |
+        # Commit any changes made by pre-commit (if any)
+        if [ -n "$(git status --porcelain)" ]; then
+          git add -A
+          git commit -m "$PRE_COMMIT_MSG" || echo "No commit created"
+          echo "COMMITTED_CHANGES=true" >> $GITHUB_ENV
+        else
+          echo "No changes to commit"
+          echo "COMMITTED_CHANGES=false" >> $GITHUB_ENV
+        fi
+
+      # This is strict — if this fails the job fails and we will NOT push
+    - name: Run pre-commit (final check pass)
+      if: ${{ env.SKIP_WORKFLOW != 'true' }}
+      run: |
+        # This is strict — if this fails the job fails and we will NOT push
+        pre-commit run --all-files --show-diff-on-failure
+
+      # Push auto-fixes back to the branch (if final check passed) - TODO: Does this cause two CI runs?
+    - name: Push auto-fixes (if any)
+      if: ${{ env.SKIP_WORKFLOW != 'true' }}
+      id: possible-push
+      run: |
+        # Push auto-fixes back to the branch (if final check passed)
+        if [ "${COMMITTED_CHANGES}" = "true" ]; then
+          git push origin HEAD:"${BRANCH}"
+          echo "HAS_PUSHED=true" >> $GITHUB_OUTPUT
+        else
+          echo "HAS_PUSHED=false" >> $GITHUB_OUTPUT
+          echo "No changes to push"
+        fi

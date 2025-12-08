@@ -1,0 +1,46 @@
+name: Check assignee on issues and pull requests
+
+on:
+  workflow_call: null
+
+jobs:
+  check-assignee:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Ensure issue/PR has an assignee
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const isPR = !!context.payload.pull_request;
+          const number = isPR ? context.payload.pull_request.number : context.payload.issue.number;
+          const assignees = isPR ? context.payload.pull_request.assignees : context.payload.issue.assignees;
+
+          if (!assignees || assignees.length === 0) {
+            const messageType = isPR ? "pull request" : "issue";
+            const commentBody = `🔶 **Warning:** Every ${messageType} must have at least one assignee. Otherwise, the last editor is automatically assigned. 🔶`;
+
+            // Check existing comments to avoid duplicates
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+            });
+
+            const alreadyCommented = comments.some(c => c.body === commentBody.trim());
+            if (!alreadyCommented) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: number,
+                body: commentBody
+              });
+            }
+
+            // Assign the actor who triggered the event
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+              assignees: [context.actor]
+            });
+          }

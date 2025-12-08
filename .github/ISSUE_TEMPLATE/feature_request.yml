@@ -1,0 +1,10 @@
+name: "Feature Request"
+description: "Suggest a new feature"
+title: "[Feature] <title>"
+labels: [feature]
+assignees: []
+body:
+- type: textarea
+  attributes:
+    label: Description
+    description: "Describe the feature you would like to propose"

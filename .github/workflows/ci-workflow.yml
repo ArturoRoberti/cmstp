@@ -1,0 +1,37 @@
+name: CI (Workflow)
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled, unassigned]
+  pull_request:
+    # synchronize is not functionally necessary, but required to trigger 'required status checks' on PR updates
+    types: [opened, edited, labeled, unlabeled, unassigned, synchronize]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  # Assignee
+  ci-wf-assignee:
+    uses: ./.github/workflows/reusable-assignee.yml
+
+  # Branch name (only for PRs)
+  ci-wf-branch-name:
+    needs: ci-wf-assignee
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/reusable-branch-name.yml
+
+  # Labels
+  ci-wf-labels:
+    needs: ci-wf-branch-name
+    if: ${{ always() && needs.ci-wf-branch-name.result != 'failure' }}
+    uses: ./.github/workflows/reusable-labels.yml
+    with:
+      required-labels: "bug,enhancement"
+      auto-assign-labels: |
+        {
+          "feature/": "enhancement",
+          "fix/": "bug"
+        }

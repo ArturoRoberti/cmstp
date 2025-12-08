@@ -1,0 +1,84 @@
+name: Enforce branch naming
+
+on:
+  workflow_call: null
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Validate PR branch
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const branch = context.payload.pull_request.head.ref;
+          console.log(`Branch: ${branch}`);
+
+          let valid = true;
+
+          // Check pattern: (feature|fix)/(ubuntu*|macos*|windows*)/<description>
+          const pattern = /^(feature|fix)\/(ubuntu.*|macos.*|windows.*)\/[^/]+$/;
+          if (!pattern.test(branch)) {
+            console.log("Branch name does not match required pattern.");
+            valid = false;
+          }
+
+          // Disallow last segment 'main'
+          const lastSegment = branch.split("/").pop();
+          if (lastSegment === "main") {
+            console.log("Branch name cannot end with 'main'.");
+            valid = false;
+          }
+
+          if (!valid) {
+            const prNumber = context.payload.pull_request.number;
+
+            // Add "invalid" label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ["invalid"],
+            });
+
+            // // Leave a comment
+            // await github.rest.issues.createComment({
+            //   owner: context.repo.owner,
+            //   repo: context.repo.repo,
+            //   issue_number: prNumber,
+            //   body: "
+            //   🚫 Closing this PR because the source branch name does not follow the required pattern 🚫
+            //   ```
+            //   (feature|fix)/(ubuntu|macos|windows)/<description>
+            //   ```
+            //   Please also delete the remote branch (if appropriate)",
+            // });
+
+            // Leave a comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `
+                🚫 Closing this PR because the source branch name does not follow the required pattern 🚫
+
+                \`\`\`
+                (feature|fix)/(ubuntu|macos|windows)/<description>
+                \`\`\`
+
+                Please also delete the remote branch (if appropriate)
+              `.replace(/^\s+/gm, '').trim(), // Allow indentation in workflow file (trim leading spaces)
+            });
+
+            // Close the PR
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              state: "closed",
+            });
+
+            core.setFailed("Invalid branch name.");
+          } else {
+            console.log("Branch name is valid.");
+          }

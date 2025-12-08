@@ -1,0 +1,22 @@
+name: "Bug Report"
+description: "Report a bug"
+title: "[Bug] <title>"
+labels: [bug]
+assignees: []
+body:
+- type: textarea
+  attributes:
+    label: Description
+    description: "Describe the bug"
+- type: textarea
+  attributes:
+    label: Steps to Reproduce
+    description: "List the steps to reproduce the bug"
+- type: textarea
+  attributes:
+    label: Expected vs Actual Behavior
+    description: "Describe the expected vs actual behavior"
+- type: textarea
+  attributes:
+    label: Screenshots
+    description: "If applicable, add screenshots to help explain your problem"

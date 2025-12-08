@@ -1,0 +1,93 @@
+name: Label Check
+
+on:
+  workflow_call:
+    inputs:
+      required-labels:
+        description: "Comma-separated list of required labels"
+        required: true
+        default: "bug,enhancement"
+        type: string
+      auto-assign-labels:
+        description: "JSON object mapping branch prefixes to one or more labels (applies
+          only to PRs)"
+        required: false
+        default: ""
+        type: string
+
+jobs:
+  check-labels:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check and optionally assign labels
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const requiredLabels = "${{ inputs['required-labels'] }}"
+            .split(',')
+            .map(l => l.trim().toLowerCase());
+
+          const autoAssignConfigRaw = `${{ inputs['auto-assign-labels'] }}`;
+          const autoAssignConfig = autoAssignConfigRaw ? JSON.parse(autoAssignConfigRaw) : {};
+
+          const isPR = !!context.payload.pull_request;
+          const target = isPR ? context.payload.pull_request : context.payload.issue;
+
+          if (!target) {
+            core.setFailed("This workflow must be triggered by an issue or pull_request event.");
+          }
+
+          let targetLabels = target.labels.map(label => label.name.toLowerCase());
+
+          if (isPR) {
+            const branchName = target.head.ref;
+
+            // Auto-assign labels based on mapping
+            for (const [prefix, labels] of Object.entries(autoAssignConfig)) {
+              if (branchName.startsWith(prefix)) {
+                const labelsArray = Array.isArray(labels) ? labels : [labels];
+                const newLabels = labelsArray.map(l => l.toLowerCase()).filter(l => !targetLabels.includes(l));
+
+                if (newLabels.length > 0) {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: target.number,
+                    labels: newLabels,
+                  });
+                  console.log(`🏷️ Added labels [${newLabels.join(", ")}] based on branch prefix "${prefix}".`);
+                  targetLabels = targetLabels.concat(newLabels);
+                }
+              }
+            }
+          }
+
+          // Validate labels
+          const hasRequiredLabel = targetLabels.some(label => requiredLabels.includes(label));
+
+          if (!hasRequiredLabel) {
+            const number = isPR ? context.payload.pull_request.number : context.payload.issue.number;
+            const commentBody = `📝 **REMINDER:** Please add one of the required labels to each ${isPR ? "pull request" : "issue"}:\n${requiredLabels.map(l => `- \`${l}\``).join('\n')}`
+            // Check existing comments to avoid duplicates
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: number,
+            });
+            const alreadyCommented = comments.some(c => c.body === commentBody.trim());
+            if (!alreadyCommented) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: number,
+                body: commentBody
+              });
+            }
+
+            core.setFailed(
+              `${isPR ? "Pull request" : "Issue"} must have at least one of the following labels: ${requiredLabels.join(', ')}`
+            );
+          } else {
+            console.log(`Passed - ${isPR ? "PR" : "Issue"} has at least one required label.`);
+          }
