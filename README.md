@@ -123,3 +123,4 @@ Look for TODOs in code. Otherwise, look at:
 - If verbose is set, save the modified scripts in log dir
 - Make dev instructions (e.g. to add a task, edit <...>; to add a field to tasks, edit <...>; to add a test, edit <...>; etc.)
 - Remove `sudo: mon_handle_sigchld: waitpid: No child processes` outputs
+- (If possible) Add a workflow that checks that there is a version bump in pyproject.toml
