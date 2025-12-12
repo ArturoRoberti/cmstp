@@ -29,4 +29,9 @@ Look for TODOs in code. Otherwise, look at:
 - If verbose is set, save the modified scripts in log dir
 - Make dev instructions (e.g. to add a task, edit <...>; to add a field to tasks, edit <...>; to add a test, edit <...>; etc.)
 - Remove `sudo: mon_handle_sigchld: waitpid: No child processes` outputs
-- (If possible) Add a workflow that checks that there is a version bump in pyproject.toml
+- (If possible) Add checks to PyPI workflow to perform a version bump in pyproject.toml if necessary
+- Allow user creation (incl. permission)
+    - Read out and automatically add to all groups (except sudo) and if `--sudo` flag is given, also add to sudo group
+- Restructure `default.yaml` 'file' field, to specify one for each OS type (ubuntu, macos, windows)
+    - If null, then skip with warning via scheduler
+    - Shell scripts will be OS-specific. Question is, should python scripts be so too or rather made cross-platform?
