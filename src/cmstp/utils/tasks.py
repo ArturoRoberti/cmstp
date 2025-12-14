@@ -7,7 +7,7 @@ FieldTypeDict = Dict[str, List[Optional[type]]]
 
 # Required in default config - "'script': None" is actually not allowed, but defaults to None if nonexistent package is used
 TASK_ARGS_DEFAULT: FieldTypeDict = {
-    "allowed": [None, list],
+    "allowed": [list, None],
     "default": [list],
 }
 TASK_PROPERTIES_DEFAULT: FieldTypeDict = {

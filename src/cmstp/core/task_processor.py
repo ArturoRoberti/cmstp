@@ -146,7 +146,6 @@ class TaskProcessor:
 
         return tasks
 
-    # TODO: Much of this should be doable easier via "overlay_dicts" with "_defaults" for each task
     def fill_missing_fields(
         self,
         tasks: TaskDictCollection,
@@ -256,8 +255,11 @@ class TaskProcessor:
             )
 
         # Remove helpers (start with '_') that may otherwise be picked up as tasks
+        defaults = default_config["_defaults"]
         default_config = {
-            k: v for k, v in default_config.items() if not k.startswith("_")
+            k: overlay_dicts(defaults, v)
+            for k, v in default_config.items()
+            if not k.startswith("_")
         }
 
         # Check structure (incl. types)
@@ -281,10 +283,14 @@ class TaskProcessor:
         # Check everything else
         existing_scripts = set()
         for task_name, task in default_config.items():
+            # Check 'description' field
+            if not task["description"]:
+                fatal("Description is empty", task_name)
+
             # Check 'script' field
-            if task["script"] is None:
+            if not task["script"]:
                 fatal(
-                    "Script is either null or uses a package that can't be found",
+                    "Script is either null, empty or uses a package that can't be found",
                     task_name,
                 )
             if not Path(task["script"]).exists():
