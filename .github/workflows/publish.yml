@@ -40,13 +40,17 @@ jobs:
         python .github/scripts/bump_version.py
 
     - name: Publish to PyPI (if no bump required)
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
       run: |
+        echo "Changed: $(git status --porcelain)"
         if [ -z "$(git status --porcelain)" ]; then
           python -m build
           twine upload dist/*
-          echo "Published to PyPI"
+          echo "Built package"
         else
-          echo "Version bump required, skipping publish"
+          echo "Version bump required, skipping build"
         fi
 
     - name: Commit bumped version
