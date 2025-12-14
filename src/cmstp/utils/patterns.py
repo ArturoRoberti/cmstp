@@ -6,6 +6,8 @@ T = TypeVar("T")
 
 
 class ScriptBlockPatterns(TypedDict):
+    """Patterns for different script block types."""
+
     # fmt: off
     FUNCTION:   re.Pattern
     CLASS:      Optional[re.Pattern]
@@ -20,13 +22,20 @@ class ScriptBlockPatterns(TypedDict):
 
 
 class PatternFactory(Protocol):
+    """Callable that produces a regex pattern based on progress flag."""
+
     def __call__(self, *, progress: bool) -> re.Pattern:
         ...
 
 
 def pattern_factory(base_type: str) -> PatternFactory:
     """
-    base_type: 'any', 'output', or 'comment'
+    Create a pattern factory for step patterns based on the base type.
+
+    :param base_type: Base type of the pattern ('any', 'output', or 'comment')
+    :type base_type: str
+    :return: Pattern factory function
+    :rtype: PatternFactory
     """
 
     def factory(*, progress: bool) -> re.Pattern:
@@ -49,6 +58,8 @@ def pattern_factory(base_type: str) -> PatternFactory:
 
 
 class StepPatterns(TypedDict):
+    """Patterns for different step message types."""
+
     # fmt: off
     any:     PatternFactory
     output:  PatternFactory
@@ -57,6 +68,8 @@ class StepPatterns(TypedDict):
 
 
 class ScriptPatterns(TypedDict):
+    """Patterns for different script types."""
+
     # fmt: off
     entrypoints: Optional[re.Pattern]
     blocks:      ScriptBlockPatterns
@@ -64,6 +77,8 @@ class ScriptPatterns(TypedDict):
 
 
 class PathPatterns(TypedDict):
+    """Patterns for different path types."""
+
     # fmt: off
     path:    re.Pattern
     link:    re.Pattern
@@ -73,10 +88,14 @@ class PathPatterns(TypedDict):
 
 
 class EnumValue(Protocol[T]):
+    """Protocol for enum values containing patterns."""
+
     patterns: T
 
 
 class PatternCollection(Enum):
+    """Collection of regex patterns for various utilities."""
+
     # fmt: off
     STEP: EnumValue[StepPatterns] = {
         "any":          pattern_factory("any"),
@@ -100,7 +119,7 @@ class PatternCollection(Enum):
     PYTHON: EnumValue[ScriptPatterns] = {
         "entrypoints":  re.compile(r'if __name__\s*==\s*[\'"]__main__[\'"]\s*:'),
         "blocks": {
-            "FUNCTION": re.compile(r"^\s*(?:async\s+)?def\s+(\w+)\s*\(([^)]*)\)\s*:\s*$"),
+            "FUNCTION": re.compile(r"^\s*(?:async\s+)?def\s+(\w+)\s*\(([^)]*)\)\s*(?:->\s*[^:]+)?\s*:\s*$"),
             "CLASS":    re.compile(r"^\s*class\s+(\w+)\s*(\(.*\))?:\s*$"),
             "IF":       re.compile(r"^\s*if\s+(.*):\s*$"),
             "ELIF":     re.compile(r"^\s*elif\s+(.*):\s*$"),

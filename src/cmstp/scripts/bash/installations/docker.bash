@@ -3,6 +3,13 @@
 install_container_toolkit() {
   : '
     Install NVIDIA Container Toolkit for use with Docker.
+
+    Args:
+      None
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Check if NVIDIA Container Toolkit is already installed
   if check_install_container_toolkit; then

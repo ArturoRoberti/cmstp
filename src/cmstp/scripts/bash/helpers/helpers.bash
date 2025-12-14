@@ -1,4 +1,16 @@
 get_package_path() {
+  : '
+    Get the path to a package's resources using Python's importlib.resources.
+
+    Args:
+      - package_name:   Name of the package.
+      - internal_path:  (Optional) Internal path within the package resources (default: '.').
+    Outputs:
+      (stdout) Path to the package resources or internal path.
+      (stderr) Error messages in case of issues
+    Returns:
+      0 if package path retrieved successfully, 1 otherwise
+    '
   if [[ $# -lt 1 ]]; then
     echo "Error: missing required argument 'package_name'" >&2
     return 1

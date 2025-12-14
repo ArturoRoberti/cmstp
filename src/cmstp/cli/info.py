@@ -2,6 +2,7 @@ import sys
 import traceback
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from pathlib import Path
+from typing import Any
 
 from cmstp.core.logger import Logger, LoggerSeverity
 from cmstp.utils.common import PACKAGE_CONFIG_PATH
@@ -10,6 +11,12 @@ from cmstp.utils.yaml import load_yaml
 
 
 def print_box_contents(filename: str) -> None:
+    """
+    Print the contents of a comment box from a file.
+
+    :param filename: Path to the config file containing the comment box.
+    :type filename: str
+    """
     inside_box = False
     box_lines = []
 
@@ -35,8 +42,21 @@ def print_box_contents(filename: str) -> None:
     Logger.richprint("\n".join(box_lines) + "\n")
 
 
-def print_dict_aligned(data, indent=0, indent_step=4, sort=True):
-    """Pretty-print nested dicts/lists with aligned keys, inline lists, and optional sorting."""
+def print_dict_aligned(
+    data: Any, indent: int = 0, indent_step: int = 4, sort: bool = True
+) -> None:
+    """
+    Print a dictionary or list with aligned formatting.
+
+    :param data: The data structure (dict, list, or primitive) to print.
+    :type data: Any
+    :param indent: Current indentation level in spaces.
+    :type indent: int
+    :param indent_step: Number of spaces to indent per level.
+    :type indent_step: int
+    :param sort: Whether to sort the dictionary keys.
+    :type sort: bool
+    """
 
     def fmt_list(lst, lvl):
         if not lst:

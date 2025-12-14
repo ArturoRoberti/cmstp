@@ -5,6 +5,13 @@ get_config_args() {
       - SYSTEM_INFO:       Associative array of system information key-value pairs.
       - CONFIG_FILE:       Path to the task configuration file.
       - REMAINING_ARGS:    Array of any additional arguments not parsed.
+
+    Args:
+      - Configuration Args
+    Outputs:
+      (stderr) Error messages in case of issues
+    Returns:
+      0 if args parsed successfully, 1 otherwise
     '
   declare -gA SYSTEM_INFO=() # TODO: Use "simulate_hardware" entry
   declare -g CONFIG_FILE=""
@@ -65,11 +72,15 @@ get_config_args() {
 run_script_function() {
   : '
     Runs a script (Bash or Python), optionally invoking a specific function within it.
+
     Args:
       - script:   Path to the script file.
-      - function: (Optional) Name of the function to invoke within the script.
+      - function: (Optional) Name of the function to invoke within the script. If omitted, the entire script is run.
       - ...:      Additional arguments to pass to the script or function.
-    If no function is specified, the script is executed directly.
+    Outputs:
+      Output from the script or function.
+    Returns:
+      0 if executed successfully, 1 otherwise
     '
   local script="$1"
   local function="${2:-}"
@@ -91,11 +102,15 @@ run_script_function() {
 run_bash_script_function() {
   : '
     Runs a Bash script, optionally invoking a specific function within it.
+
     Args:
-      - script:   Path to the Bash script file.
-      - function: (Optional) Name of the function to invoke within the script.
+      - script:   Path to the script file.
+      - function: (Optional) Name of the function to invoke within the script. If omitted, the entire script is run.
       - ...:      Additional arguments to pass to the script or function.
-    If no function is specified, the script is executed directly.
+    Outputs:
+      Output from the script or function.
+    Returns:
+      0 if executed successfully, 1 otherwise
     '
   local script="$1"
   local function="${2:-}"
@@ -116,11 +131,15 @@ run_bash_script_function() {
 run_python_script_function() {
   : '
     Runs a Python script, optionally invoking a specific function within it.
+
     Args:
-      - script:   Path to the Python script file.
-      - function: (Optional) Name of the function to invoke within the script.
+      - script:   Path to the script file.
+      - function: (Optional) Name of the function to invoke within the script. If omitted, the entire script is run.
       - ...:      Additional arguments to pass to the script or function.
-    If no function is specified, the script is executed directly.
+    Outputs:
+      Output from the script or function.
+    Returns:
+      0 if executed successfully, 1 otherwise
     '
   if [[ $# -lt 1 ]]; then
     echo "Error: missing required argument 'script'" >&2

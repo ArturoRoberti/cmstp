@@ -13,7 +13,15 @@ from cmstp.core.logger import Logger, LoggerSeverity
 from cmstp.utils.system_info import get_manufacturer
 
 
-def promt_bool(message):
+def promt_bool(message: str) -> bool:
+    """
+    Prompt the user for a yes/no response.
+
+    :param message: The prompt message.
+    :type message: str
+    :return: True if the user responds with 'y', False for 'n'.
+    :rtype: bool
+    """
     while True:
         response = input(f"{message} (y/n): ").strip().lower()
         if response in ["y", "n"]:
@@ -24,6 +32,10 @@ def promt_bool(message):
 
 @dataclass
 class SSHKeysManager:
+    """
+    Manage SSH keys for the user.
+    """
+
     # fmt: off
     ssh_directory: Path           = field(init=False, default=Path("~/.ssh").expanduser())
     curr_ssh_key:  Optional[Path] = field(init=False, repr=False, default=None)
@@ -37,8 +49,13 @@ class SSHKeysManager:
             else None
         )
 
-    def keys_exist(self):
-        """Check if any keys are loaded in the ssh-agent."""
+    def keys_exist(self) -> bool:
+        """
+        Check if any SSH keys are already added to the ssh-agent.
+
+        :return: True if keys exist, False otherwise.
+        :rtype: bool
+        """
         try:
             output = (
                 subprocess.check_output(
@@ -54,7 +71,10 @@ class SSHKeysManager:
             # ssh-agent may not be running
             return False
 
-    def prompt_name(self):
+    def prompt_name(self) -> None:
+        """
+        Prompt the user for an SSH key name.
+        """
         Logger.richprint("=== SSH Key Name ===", "cyan")
         while True:
             key_name = input(
@@ -71,7 +91,10 @@ class SSHKeysManager:
             else:
                 print("Key name cannot be empty. Please try again.\n")
 
-    def create(self):
+    def create(self) -> None:
+        """
+        Create a new SSH key pair and add it to the ssh-agent.
+        """
         Logger.richprint("\n=== SSH Key Password ===", "cyan")
         while True:
             password = getpass.getpass(
@@ -104,7 +127,10 @@ class SSHKeysManager:
 
         print(f"SSH key successfully created at {self.curr_ssh_key}")
 
-    def prompt_upload(self):
+    def prompt_upload(self) -> None:
+        """
+        Prompt the user to upload the public SSH key.
+        """
         Logger.richprint("\n=== SSH Key Upload ===", "cyan")
         print(
             f"Please upload the public key ({self.ssh_key_pub_path}) in your account settings (GitHub, GitLab, etc.). Public key (between dashes):"
@@ -115,8 +141,10 @@ class SSHKeysManager:
         print("-" * 100)
         input("After uploading your key, press anything to continue...")
 
-    def setup_keys(self):
-        """Setup SSH keys"""
+    def setup_keys(self) -> None:
+        """
+        Set up SSH keys by prompting the user for input.
+        """
         while True:
             self.prompt_name()
             self.create()
@@ -130,17 +158,26 @@ class SSHKeysManager:
 
 @dataclass
 class GitCredentialsManager:
+    """
+    Manage Git user credentials (name and email).
+    """
+
     # fmt: off
     user_name:  str    = field(default="")
     user_email: str    = field(default="")
     # fmt: on
 
-    def credentials_exist(self):
-        """Check if git user name and email are already set."""
+    def credentials_exist(self) -> bool:
+        """
+        Check if git user name and email are already set.
+
+        :return: True if both user name and email are set, False otherwise
+        :rtype: bool
+        """
         self.get_credentials()
         return bool(self.user_name and self.user_email)
 
-    def get_credentials(self):
+    def get_credentials(self) -> None:
         """Retrieve existing git user name and email if set."""
         try:
             self.user_name = (
@@ -164,7 +201,10 @@ class GitCredentialsManager:
         except subprocess.CalledProcessError:
             self.user_email = ""
 
-    def prompt_credentials(self):
+    def prompt_credentials(self) -> None:
+        """
+        Prompt the user for git user name and email.
+        """
         Logger.richprint("=== Git User Info ===", "cyan")
         while True:
             self.user_name = input("Enter your Git username: ").strip()
@@ -173,7 +213,7 @@ class GitCredentialsManager:
                 return
             print("Both username and email are required. Please try again.\n")
 
-    def setup_credentials(self):
+    def setup_credentials(self) -> None:
         """Set up git user name and email."""
         self.prompt_credentials()
         subprocess.run(
@@ -188,7 +228,10 @@ class GitCredentialsManager:
         )
 
 
-def print_secure_boot_steps():
+def print_secure_boot_steps() -> None:
+    """
+    Print steps to disable Secure Boot in UEFI/BIOS.
+    """
     Logger.richprint("=== Disable Secure Boot Steps ===", "cyan")
 
     # Table of common manufacturers → probable keys

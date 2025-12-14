@@ -2,6 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import List
 
 from packaging import version
 
@@ -20,8 +21,13 @@ from cmstp.utils.git_repos import (
 )
 
 
-def install_js_repositories(*args):
-    """Clone and install JS repositories from a list of git URLs."""
+def install_js_repositories(*args: List[str]) -> None:
+    """
+    Clone and install JS repositories from a list of git URLs.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, remaining_args = get_config_args(args)
     if config_file is None:

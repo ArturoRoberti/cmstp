@@ -68,12 +68,21 @@ class Logger:
         self._progress.__exit__(exc_type, exc, tb)  # stop live-render
         return False  # propagate exceptions
 
-    def create_log_dir(self):
+    def create_log_dir(self) -> None:
         """Create the log directory if it does not exist."""
         self.logdir.mkdir(parents=True, exist_ok=True)
 
     def add_task(self, task_name: str, total: int = 1) -> TaskID:
-        """Add a new task to the progress tracker."""
+        """
+        Add a new task to the progress tracker.
+
+        :param task_name: Name of the task
+        :type task_name: str
+        :param total: Total number of steps for the task
+        :type total: int
+        :return: The ID of the created task
+        :rtype: TaskID
+        """
         task_id = self._progress.add_task(
             f"{task_name}: starting", total=total
         )
@@ -90,7 +99,14 @@ class Logger:
         return task_id
 
     def generate_logfile_path(self, task_id: TaskID) -> Optional[Path]:
-        """Generate a logfile path for a given task name."""
+        """
+        Generate a logfile path for a given task name.
+
+        :param task_id: ID of the task
+        :type task_id: TaskID
+        :return: The path to the logfile, or None if task not found
+        :rtype: Path | None
+        """
         with self._tasks_lock:
             if task_id not in self.task_infos:
                 return None
@@ -101,15 +117,33 @@ class Logger:
 
         return logfile
 
-    def set_total(self, task_id: TaskID, total: int):
-        """Set the total number of steps for a task."""
+    def set_total(self, task_id: TaskID, total: int) -> None:
+        """
+        Set the total number of steps for a task.
+
+        :param task_id: ID of the task
+        :type task_id: TaskID
+        :param total: Total number of steps for the task
+        :type total: int
+        """
         with self._tasks_lock:
             if task_id in self.task_infos:
                 self.task_infos[task_id]["total"] = total
         self._progress.update(task_id, total=total)
 
-    def update_task(self, task_id: TaskID, message: str, advance: bool = True):
-        """Update the progress of a task, optionally advancing it by one step."""
+    def update_task(
+        self, task_id: TaskID, message: str, advance: bool = True
+    ) -> None:
+        """
+        Update the progress of a task, optionally advancing it by one step.
+
+        :param task_id: ID of the task
+        :type task_id: TaskID
+        :param message: Description message for the task update
+        :type message: str
+        :param advance: Whether to advance the task progress by one step
+        :type advance: bool
+        """
         with self._tasks_lock:
             if task_id not in self.task_infos:
                 return
@@ -131,8 +165,10 @@ class Logger:
         """
         Generate a rich-formatted color string for the given severity.
 
-        NOTE: Not all colors support additional tweaks such as "bold" or "bright" (etc.). Look at all available colors
-              via the rich.color.ANSI_COLOR_NAMES list (from rich.color import ANSI_COLOR_NAMES; print(ANSI_COLOR_NAMES))
+        :param severity: Severity level
+        :type severity: LoggerEnum
+        :return: The rich-formatted color string
+        :rtype: str
         """
         return f"{'bold 'if severity.bold else ''}{'bright_'if severity.bright else ''}{severity.color}"
 
@@ -141,8 +177,10 @@ class Logger:
         """
         Generate a rich-formatted severity tag for logging.
 
-        NOTE: Not all colors support additional tweaks such as "bold" or "bright" (etc.). Look at all available colors
-              via the rich.color.ANSI_COLOR_NAMES list (from rich.color import ANSI_COLOR_NAMES; print(ANSI_COLOR_NAMES))
+        :param severity: Severity level
+        :type severity: LoggerEnum
+        :return: The rich-formatted severity tag
+        :rtype: str
         """
         color = Logger.logcolor(severity)
         return f"[{color}][{severity.label}][/{color}]"
@@ -152,11 +190,18 @@ class Logger:
         severity: LoggerSeverity,
         message: str,
         syntax_highlight: bool = True,
-    ):
+    ) -> None:
         """
         Log a message with the specified severity.
-        If severity is ERROR or FATAL, log to stderr.
-        If severity is FATAL, exit the program after logging.
+            If severity is ERROR or FATAL, log to stderr.
+            If severity is FATAL, exit the program after logging.
+
+        :param severity: Severity level
+        :type severity: LoggerSeverity
+        :param message: The message to log
+        :type message: str
+        :param syntax_highlight: Whether to apply syntax highlighting
+        :type syntax_highlight: bool
         """
         if severity == LoggerSeverity.DEBUG and not self.verbose:
             return
@@ -184,36 +229,43 @@ class Logger:
         elif severity == LoggerSeverity.FATAL:
             sys.exit(1)
 
-    def debug(self, message: str, syntax_highlight: bool = True):
-        """Log a debug message."""
+    def debug(self, message: str, syntax_highlight: bool = True) -> None:
+        """Log a debug message. See Logger.log for details."""
         self.log(LoggerSeverity.DEBUG, message, syntax_highlight)
 
-    def info(self, message: str, syntax_highlight: bool = True):
-        """Log an info message."""
+    def info(self, message: str, syntax_highlight: bool = True) -> None:
+        """Log an info message. See Logger.log for details."""
         self.log(LoggerSeverity.INFO, message, syntax_highlight)
 
-    def warning(self, message: str, syntax_highlight: bool = True):
-        """Log a warning message."""
+    def warning(self, message: str, syntax_highlight: bool = True) -> None:
+        """Log a warning message. See Logger.log for details."""
         self.log(LoggerSeverity.WARNING, message, syntax_highlight)
 
-    def error(self, message: str, syntax_highlight: bool = True):
-        """Log an error message."""
+    def error(self, message: str, syntax_highlight: bool = True) -> None:
+        """Log an error message. See Logger.log for details."""
         self.log(LoggerSeverity.ERROR, message, syntax_highlight)
 
-    def fatal(self, message: str, syntax_highlight: bool = True):
-        """Log a fatal message and exit."""
+    def fatal(self, message: str, syntax_highlight: bool = True) -> None:
+        """Log a fatal message and exit. See Logger.log for details."""
         self.log(LoggerSeverity.FATAL, message, syntax_highlight)
 
-    def done(self, message: str, syntax_highlight: bool = True):
-        """Log a done message."""
+    def done(self, message: str, syntax_highlight: bool = True) -> None:
+        """Log a done message. See Logger.log for details."""
         self.log(LoggerSeverity.DONE, message, syntax_highlight)
 
     def finish_task(
         self,
         task_id: int,
         success: bool,
-    ):
-        """Mark a task as finished, updating its progress and description."""
+    ) -> None:
+        """
+        Mark a task as finished, updating its progress and description.
+
+        :param task_id: ID of the task
+        :type task_id: int
+        :param success: Whether the task completed successfully
+        :type success: bool
+        """
         with self._tasks_lock:
             if task_id not in self.task_infos:
                 return
@@ -241,7 +293,15 @@ class Logger:
         self._progress.update(task_id, completed=total, description=desc)
 
     @staticmethod
-    def richprint(message: str, color: Optional[str] = None):
+    def richprint(message: str, color: Optional[str] = None) -> None:
+        """
+        Print a rich-formatted message with optional color.
+
+        :param message: The message to print
+        :type message: str
+        :param color: Optional color for the message
+        :type color: Optional[str]
+        """
         if color:
             richprint(f"[{color}]{message}[/{color}]")
         else:
@@ -250,13 +310,30 @@ class Logger:
     @staticmethod
     def logrichprint(
         severity: LoggerSeverity, message: str, newline: bool = False
-    ):
-        """Print a rich-formatted log message with the specified severity."""
+    ) -> None:
+        """
+        Print a rich-formatted log message with the specified severity.
+
+        :param severity: Severity level
+        :type severity: LoggerSeverity
+        :param message: The message to print
+        :type message: str
+        :param newline: Whether to print a newline before the message
+        :type newline: bool
+        """
         logstart = Logger.logstart(severity)
         prefix = "\n" if newline else ""
         richprint(f"{prefix}{logstart} {message}")
 
     @staticmethod
-    def step(message: str, progress: bool = False):
-        """Log a step message indicating progress."""
+    def step(message: str, progress: bool = False) -> None:
+        # TODO: Allow (via input) to send to stderr instead of stdout
+        """
+        Log a step message indicating progress. Only to be used from within tasks.
+
+        :param message: The message
+        :type message: str
+        :param progress: Whether to progress the task
+        :type progress: bool
+        """
         print(f"\n__STEP{'_NO_PROGRESS' if not progress else ''}__: {message}")

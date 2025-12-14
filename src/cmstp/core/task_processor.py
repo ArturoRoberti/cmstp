@@ -26,7 +26,7 @@ from cmstp.utils.yaml import load_yaml, overlay_dicts
 # TODO: Extract (into funcs) and order tests, e.g. check structure, check script/function existence, check args, check dependencies, check supercedes, etc.
 @dataclass
 class TaskProcessor:
-    """Processes task configurations and resolves tasks to be run."""
+    """Processes tasks to run by resolving task properties."""
 
     # fmt: off
     logger:           Logger             = field(repr=False)
@@ -129,6 +129,11 @@ class TaskProcessor:
         # TODO: Move to better location, e.g. after overlay?
         """
         Prepend config directory to config file paths in tasks.
+
+        :param tasks: Tasks to process
+        :type tasks: TaskDictCollection
+        :return: Processed tasks
+        :rtype: TaskDictCollection
         """
         for task_name, task in tasks.items():
             if task["config_file"] is not None:
@@ -155,6 +160,17 @@ class TaskProcessor:
     ) -> TaskDictCollection:
         """
         Fill in missing optional fields with defaults.
+
+        :param tasks: Tasks to process
+        :type tasks: TaskDictCollection
+        :param enable_all: Whether to enable all tasks by default
+        :type enable_all: bool
+        :param include_default: Whether to include default tasks
+        :type include_default: bool
+        :param include_custom: Whether to include custom tasks
+        :type include_custom: bool
+        :return: Processed tasks with missing fields filled
+        :rtype: TaskDictCollection
         """
         expected_properties = dict()
         expected_args = dict()
@@ -234,10 +250,20 @@ class TaskProcessor:
     def check_default_config(self) -> TaskDictCollection:
         """
         Check that the default config file is valid.
+
+        :return: Default config tasks
+        :rtype: TaskDictCollection
         """
 
-        def fatal(msg: str, task_name: Optional[str] = None):
-            """Helper to log fatal errors"""
+        def fatal(msg: str, task_name: Optional[str] = None) -> None:
+            """
+            Helper to log fatal errors
+
+            :param msg: Error message
+            :type msg: str
+            :param task_name: Name of the task where the error occurred
+            :type task_name: Optional[str]
+            """
             self.logger.fatal(
                 f"Error in default config file {self.default_config}: {f'{task_name}:' if task_name else ''} {msg}"
             )
@@ -343,7 +369,10 @@ class TaskProcessor:
                     arg_list = [
                         a.strip() for a in args.split(",") if a.strip()
                     ]
-                    if not (len(arg_list) == 1 and arg_list[0] == "*args"):
+                    if not (
+                        len(arg_list) == 1
+                        and arg_list[0].split(":")[0] == "*args"
+                    ):
                         fatal(
                             f"'{task['function']}' function in script "
                             f"{task['script']} must ONLY capture '*args' as "
@@ -372,16 +401,29 @@ class TaskProcessor:
     def check_custom_config(self) -> TaskDictCollection:
         """
         Check that the custom config file is valid.
+
+        :return: Custom config tasks
+        :rtype: TaskDictCollection
         """
 
-        def warning(msg: str):
-            """Helper to log warning messages"""
+        def warning(msg: str) -> None:
+            """
+            Helper to log warning messages
+
+            :param msg: Warning message
+            :type msg: str
+            """
             self.logger.warning(
                 f"Warning in custom config file {self.config_file}: {msg}"
             )
 
-        def fatal(msg: str):
-            """Helper to log fatal errors"""
+        def fatal(msg: str) -> None:
+            """
+            Helper to log fatal errors
+
+            :param msg: Error message
+            :type msg: str
+            """
             self.logger.fatal(
                 f"Error in custom config file {self.config_file}: {msg}"
             )
@@ -473,10 +515,26 @@ class TaskProcessor:
         """
         Check if an argument is in the allowed list.
         If allowed_args is None, any argument is allowed.
+
+        :param allowed_args: List of allowed arguments or None if any argument is allowed
+        :type allowed_args: Optional[List[str]]
+        :param args: Argument or list of arguments to check
+        :type args: Union[str, List[str]]
+        :return: Tuple of (list of wrong arguments, is valid)
+        :rtype: Tuple[List[str], bool]
         """
 
         def _check_single_allowed(allowed_args: List[str], arg: str) -> bool:
-            """Check if a single argument is allowed, supporting wildcard '*'"""
+            """
+            Check if a single argument is allowed, supporting wildcard '*'
+
+            :param allowed_args: List of allowed arguments
+            :type allowed_args: List[str]
+            :param arg: Argument to check
+            :type arg: str
+            :return: Whether the argument is allowed
+            :rtype: bool
+            """
             for allowed in allowed_args:
                 if allowed.endswith("*"):
                     if arg.startswith(allowed[:-1]):
@@ -502,6 +560,11 @@ class TaskProcessor:
     def check_args(self, tasks: TaskDictCollection) -> TaskDictCollection:
         """
         Check task arguments for validity (if they are in the allowed list).
+
+        :param tasks: Tasks to process
+        :type tasks: TaskDictCollection
+        :return: Processed tasks with checked arguments
+        :rtype: TaskDictCollection
         """
         for task_name, task in tasks.items():
             if task["enabled"] is False:
@@ -531,13 +594,18 @@ class TaskProcessor:
         self, tasks: TaskDictCollection
     ) -> TaskDictCollection:
         """
-        Mutates `tasks` in place:
-        - Ensures all dependencies exist
-        - Raises fatal error if dependency graph has cycles
-        - If `self.enable_deps` is True:
-            Enables all dependencies of enabled tasks (recursively)
-        - Otherwise:
-            Disables any task whose dependencies are disabled
+        Check task dependencies and enable/disable tasks accordingly. Specifically:
+        1. Ensures all dependencies exist
+        2. Raises fatal error if dependency graph has cycles
+        3. If `self.enable_deps` is True:
+           Enables all dependencies of enabled tasks (recursively)
+        4. Otherwise:
+           Disables any task whose dependencies are disabled
+
+        :param tasks: Tasks to process
+        :type tasks: TaskDictCollection
+        :return: Processed tasks with checked dependencies
+        :rtype: TaskDictCollection
         """
         # Build dependency graph
         G = nx.DiGraph()
@@ -591,6 +659,11 @@ class TaskProcessor:
     def check_conflicts(self, tasks: TaskDictCollection) -> TaskDictCollection:
         """
         Disable tasks that are conflicting with superceding tasks.
+
+        :param tasks: Tasks to process
+        :type tasks: TaskDictCollection
+        :return: Processed tasks with checked conflicts
+        :rtype: TaskDictCollection
         """
         # First, collect all tasks that are enabled and have 'supercedes' field
         superceding_tasks = {
@@ -614,7 +687,14 @@ class TaskProcessor:
 
     @staticmethod
     def count_tasks(tasks: TaskDictCollection) -> int:
-        """Count the number of enabled tasks."""
+        """
+        Count the number of enabled tasks.
+
+        :param tasks: Tasks to count
+        :type tasks: TaskDictCollection
+        :return: Number of enabled tasks
+        :rtype: int
+        """
         count = 0
         for task in tasks.values():
             if task.get("enabled", False):

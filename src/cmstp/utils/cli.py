@@ -11,6 +11,10 @@ from cmstp.utils.system_info import get_system_info
 
 @dataclass
 class MainSetupArgs:
+    """
+    Data class to hold main setup arguments.
+    """
+
     # fmt: off
     tasks:               List[str] = field(init=False, default_factory=list)
     config_file:         Path      = field(init=False, default=None)
@@ -21,6 +25,10 @@ class MainSetupArgs:
 
 @dataclass
 class MainSetupProcessor:
+    """
+    Class to process main setup arguments and prepare the system.
+    """
+
     # fmt: off
     logger: Logger        = field(repr=False)
     args:   MainSetupArgs = field(repr=False)
@@ -28,6 +36,12 @@ class MainSetupProcessor:
     # fmt: on
 
     def process_args(self) -> Tuple[MainSetupArgs, Optional[Path]]:
+        """
+        Docstring for process_args
+
+        :return: Processed main setup arguments and optional cloned config directory path
+        :rtype: Tuple[MainSetupArgs, Path | None]
+        """
         main_setup_args = MainSetupArgs()
         cloned_config_dir = None
 
@@ -99,7 +113,9 @@ class MainSetupProcessor:
         return main_setup_args, cloned_config_dir
 
     def check_system_compatibility(self) -> None:
-        # Check system information
+        """
+        Check if the system is compatible for setup.
+        """
         system_info = get_system_info()
         if system_info["name"] is None:
             self.logger.fatal(
@@ -109,6 +125,9 @@ class MainSetupProcessor:
         self.logger.debug(f"System information: {system_info}")
 
     def prepare(self) -> None:
+        """
+        Prepare the system for setup.
+        """
         error_msg = None
         requirements_id = self.logger.add_task("install-requirements", total=2)
 

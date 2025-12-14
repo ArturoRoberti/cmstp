@@ -39,6 +39,13 @@ def print_expected_task_fields(
     """
     Returns a YAML-like string with a top-level task name, first-level
     properties and and second-level args, along with their expected types.
+
+    :param args_types: Types for args fields
+    :type args_types: FieldTypeDict
+    :param keys_types: Types for top-level task fields
+    :type keys_types: FieldTypeDict
+    :return: Formatted string representing expected task fields
+    :rtype: str
     """
 
     def format_value(value):
@@ -80,7 +87,16 @@ def print_expected_task_fields(
 
 
 def check_structure(obj: Any, expected: FieldTypeDict) -> bool:
-    """Check if an object matches its expected structure"""
+    """
+    Check if an object matches its expected structure.
+
+    :param obj: The object to check
+    :type obj: Any
+    :param expected: Expected structure description
+    :type expected: FieldTypeDict
+    :return: True if the object matches the expected structure, False otherwise
+    :rtype: bool
+    """
     if not isinstance(obj, dict):
         return False
     if set(obj.keys()) != set(expected.keys()):
@@ -94,6 +110,8 @@ def check_structure(obj: Any, expected: FieldTypeDict) -> bool:
 
 
 class ArgsDict(TypedDict):
+    """Dictionary representing task arguments."""
+
     # fmt: off
     allowed:          Optional[List[str]]
     custom:           List[str]
@@ -105,7 +123,18 @@ class ArgsDict(TypedDict):
 def is_args_dict(
     obj: Any, include_default: bool = True, include_custom: bool = False
 ) -> bool:
-    """Check if an object is a valid ArgsDict"""
+    """
+    Check if an object is a valid ArgsDict
+
+    :param obj: The object to check
+    :type obj: Any
+    :param include_default: Whether to include default args in the check
+    :type include_default: bool
+    :param include_custom: Whether to include custom args in the check
+    :type include_custom: bool
+    :return: True if the object is a valid ArgsDict, False otherwise
+    :rtype: bool
+    """
     expected_args = dict()
     if include_default:
         expected_args |= TASK_ARGS_DEFAULT
@@ -116,6 +145,8 @@ def is_args_dict(
 
 
 class TaskDict(TypedDict):
+    """Dictionary representing a task configuration."""
+
     # fmt: off
     enabled:        bool
     description:    str
@@ -134,7 +165,18 @@ class TaskDict(TypedDict):
 def is_task_dict(
     obj: Any, include_default: bool = True, include_custom: bool = False
 ) -> bool:
-    """Check if an object is a valid TaskDict"""
+    """
+    Check if an object is a valid TaskDict.
+
+    :param obj: The object to check
+    :type obj: Any
+    :param include_default: Whether to include default properties in the check
+    :type include_default: bool
+    :param include_custom: Whether to include custom properties in the check
+    :type include_custom: bool
+    :return: True if the object is a valid TaskDict, False otherwise
+    :rtype: bool
+    """
     expected_keys = dict()
     if include_default:
         expected_keys |= TASK_PROPERTIES_DEFAULT
@@ -163,10 +205,16 @@ def get_invalid_tasks_from_task_dict_collection(
 ) -> Optional[List[str]]:
     """
     Check if an object is a valid collection of TaskDicts.
-    Returns a list of invalid task names.
-    If the entire object is not the required input type (dict), returns None.
+        NOTE: This allows empty dicts (no tasks) as valid input
 
-    NOTE: This allows empty dicts (no tasks) as valid input
+    :param obj: The object to check
+    :type obj: Dict[Any, Any]
+    :param include_default: Whether to include default properties in the check
+    :type include_default: bool
+    :param include_custom: Whether to include custom properties in the check
+    :type include_custom: bool
+    :return: List of invalid task names, or None if the object is not a dict
+    :rtype: List[str] | None
     """
     if not isinstance(obj, dict):
         return None

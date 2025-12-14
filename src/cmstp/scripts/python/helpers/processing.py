@@ -7,6 +7,10 @@ from cmstp.core.logger import Logger
 
 
 class InstallCommands(Enum):
+    """
+    Predefined installation commands for various package managers.
+    """
+
     # fmt: off
     APT     = "sudo flock /var/lib/dpkg/lock-frontend apt-get install -y"
     SNAP    = "sudo snap install"
@@ -23,11 +27,12 @@ def get_clean_lines(filename: Path) -> List[str]:
     """
     Reads a file and returns a list of lines with comments and extra whitespace removed.
     Lines starting with '#' or empty after stripping are ignored.
-    """
-    # if not filename.exists():
-    #     Logger.logrichprint(LoggerSeverity.FATAL, f"Config file not found: {filename}")
-    #     raise FileNotFoundError
 
+    :param filename: Path to the input file
+    :type filename: Path
+    :return: List of cleaned lines
+    :rtype: List[str]
+    """
     clean_lines = []
     with open(filename, "r", encoding="utf-8") as f:
         for line in f:
@@ -42,9 +47,14 @@ def get_clean_lines(filename: Path) -> List[str]:
 # TODO: If a single package fails, finish task with neither "success" nor "failure", but "warning" status
 def install_packages_from_list(
     install_command: InstallCommands, packages: List[str]
-):
+) -> None:
     """
     Installs a list of packages using the specified package manager command.
+
+    :param install_command: InstallCommands enum value specifying the installation command
+    :type install_command: InstallCommands
+    :param packages: List of package names to install
+    :type packages: List[str]
     """
     for pkg in packages:
         cmd = f"{install_command.value} {pkg}"
@@ -57,8 +67,13 @@ def install_packages_from_list(
 
 def install_packages_from_txt_file(
     install_command: InstallCommands, package_file: Path
-):
+) -> None:
     """
     Installs packages listed in the given requirements file using the specified package manager command.
+
+    :param install_command: InstallCommands enum value specifying the installation command
+    :type install_command: InstallCommands
+    :param package_file: Path to the requirements file
+    :type package_file: Path
     """
     install_packages_from_list(install_command, get_clean_lines(package_file))

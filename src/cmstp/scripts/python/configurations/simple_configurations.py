@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 from shutil import copy2, copytree
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import commentjson
 import requests
@@ -15,12 +15,15 @@ from cmstp.utils.patterns import PatternCollection
 from cmstp.utils.yaml import load_yaml
 
 
-def configure_pinned_apps(*args):
+def configure_pinned_apps(*args: List[str]) -> None:
     """
     Configure pinned applications in the GNOME desktop environment.
 
     NOTE: Inexistent apps are stored as "pinned" but only actually pin after being installed.
           No error is raised by 'gsettings' if an app does not exist.
+
+    :param args: Configuration arguments
+    :type args: List[str]
     """
     # Parse config args
     _, config_file, _ = get_config_args(args)
@@ -39,8 +42,13 @@ def configure_pinned_apps(*args):
 
 
 # TODO: Expand any "[/].../.../..." paths to dicts. Pay attention not to merge with existing dicts.
-def configure_filestructure(*args):
-    """Create a predefined file structure based on a YAML mapping."""
+def configure_filestructure(*args: List[str]) -> None:
+    """
+    Create a predefined file structure based on a YAML mapping.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, remaining_args = get_config_args(args)
     if config_file is None:
@@ -174,8 +182,13 @@ def configure_filestructure(*args):
             )
 
 
-def configure_vscode_keybindings(*args):
-    """Configure VSCode keybindings."""
+def configure_vscode_keybindings(*args: List[str]) -> None:
+    """
+    Configure VSCode keybindings.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:

@@ -8,18 +8,31 @@ from cmstp.utils.common import resolve_package_path
 
 
 def load_yaml(yaml_file: Path) -> Optional[Dict[str, Any]]:
-    """Load a YAML file and normalize its content."""
+    """
+    Load a YAML file and normalize its content.
+
+    :param yaml_file: Path to the YAML file to load
+    :type yaml_file: Path
+    :return: Normalized content of the YAML file, or None if loading fails
+    :rtype: Dict[str, Any] | None
+    """
 
     def join_constructor(loader, node):
         """Custom !join constructor to concatenate strings and aliases."""
         parts = loader.construct_sequence(node)
         return "".join(parts)
 
-    def normalize_yaml(obj):
+    def normalize_yaml(obj: Any) -> Any:
         """
         Recursively normalize YAML content:
         - Convert all numbers to float
         - Remove duplicates in lists
+        - Resolve package paths in strings
+
+        :param obj: The object to normalize
+        :type obj: Any
+        :return: Normalized object
+        :rtype: Any
         """
         if not obj:
             # Empty or None
@@ -75,6 +88,15 @@ def overlay_dicts(
     """
     Recursively overlay overlay-dict onto base-dict.
     Keys in overlay replace or update those in base, unless the value is "default".
+
+    :param base: The base dictionary to overlay onto
+    :type base: Dict
+    :param overlay: The overlay dictionary with updates
+    :type overlay: Dict
+    :param allow_default: Whether to allow "default" values to keep base values
+    :type allow_default: bool
+    :return: The resulting dictionary after overlay
+    :rtype: Dict
     """
     overlayed_dict = deepcopy(base)
     for key, value in overlay.items():

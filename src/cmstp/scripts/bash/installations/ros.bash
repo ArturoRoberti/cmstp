@@ -1,20 +1,34 @@
 #!/usr/bin/env bash
 
-get_supported_ros_distros() {
+_get_supported_ros_distros() {
   : '
     Get a list of supported ROS distros for the current OS.
     Returns an array of supported ROS distro codenames.
+
+    Args:
+      None
+    Outputs:
+      List of supported ROS distro codenames
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local supported_ros_distros
   supported_ros_distros=($(apt-cache search ros- | grep -E '^ros-[a-z]+-desktop-full' | awk '{print $1}' | sed 's/^ros-//;s/-desktop-full$//' | tr '\n' ' '))
   printf "%s\n" "${supported_ros_distros[@]}"
 }
 
-get_latest_ros_distro() {
+_get_latest_ros_distro() {
   : '
     Get the latest ROS distro codename from the official ROS releases page.
     If --include-future is provided in REMAINING_ARGS, future distros will also be considered.
     Returns the codename of the latest ROS distro.
+
+    Args:
+      None
+    Outputs:
+      Latest ROS distro codename
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local include_future=false
   local url="https://docs.ros.org/en/rolling/Releases.html"
@@ -45,7 +59,7 @@ get_latest_ros_distro() {
 
   # Get supported distros for filtering
   local supported_ros_distros
-  supported_ros_distros=($(get_supported_ros_distros | tr '\n' ' '))
+  supported_ros_distros=($(_get_supported_ros_distros | tr '\n' ' '))
 
   best_name=""
   best_ts=0
@@ -105,6 +119,15 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
           If any other distros are needed, consider using ROS docker images.
           See 'install-docker-images' task for more details on ROS docker images.
           You can (usually) find more info about supported OSs at https://docs.ros.org/en/<distro>/Installation.html
+
+    Args:
+      - Configuration Args
+      - DISTRO...:   List of ROS distro codenames to install (e.g. "noetic", "foxy", "galactic").
+                     Use "latest" to install the latest supported ROS distro.
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Parse config args
   get_config_args "$@"
@@ -132,11 +155,11 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   rm "${tmpfile}"
 
   # (STEP) Preparing distros to install
-  supported_ros_distros=($(get_supported_ros_distros | tr '\n' ' '))
+  supported_ros_distros=($(_get_supported_ros_distros | tr '\n' ' '))
   DISTROS=()
   for distro in "${REMAINING_ARGS[@]}"; do
     if [[ "$distro" == "latest" ]]; then
-      DISTROS+=$(get_latest_ros_distro)
+      DISTROS+=$(_get_latest_ros_distro)
       # (STEP_NO_PROGRESS) Detected latest supported ROS distro: ${DISTROS[-1]}
     elif ! _contains supported_ros_distros "$distro"; then
       # (STEP_NO_PROGRESS) Skipping unsupported ROS distro: $distro

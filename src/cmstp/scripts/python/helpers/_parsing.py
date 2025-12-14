@@ -9,17 +9,18 @@ from cmstp.utils.system_info import SystemInfo
 
 
 def get_config_args(
-    args=sys.argv[1:],
+    args: List[str] = sys.argv[1:],
 ) -> Tuple[SystemInfo, Path, List[str]]:
-    """Parse command-line arguments and return system info, config info, and remaining args."""
+    """
+    Parse command-line arguments and return system info, config info, and remaining args.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    :return: Parsed system info, config file path, and remaining arguments
+    :rtype: Tuple[SystemInfo, Path, List[str]]
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--system-info", type=str, default=None)
-    # parser.add_argument("--simulate-hardware", action="store_true")  # Now included in system info
-    # parser.add_argument(
-    #     "--config-directory",
-    #     type=Path,
-    #     default=None
-    # )
     parser.add_argument("--config-file", type=Path, default=None)
     args, remaining = parser.parse_known_args(args)
 
@@ -42,29 +43,3 @@ def get_config_args(
         raise FileNotFoundError
 
     return system_info, args.config_file, remaining
-
-
-# Example function usage
-def _example_function(*args):
-    system_info, config_info, remaining = get_config_args(args)
-
-    # Use argparse for the rest
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--foo")
-    parser.add_argument("--bar")
-    remaining_args = parser.parse_args(remaining)
-
-    foo_arg = remaining_args.foo
-
-
-# Example main usage
-if __name__ == "__main__":
-    system_info, config_info, remaining = get_config_args()
-
-    # Use argparse for the rest
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--foo")
-    parser.add_argument("--bar")
-    remaining_args = parser.parse_args(remaining)
-
-    foo_arg = remaining_args.foo

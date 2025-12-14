@@ -8,6 +8,13 @@ from rich.progress import TaskID
 
 @dataclass(frozen=True)
 class LoggerTextSpec:
+    """
+    Text specification for logger enums.
+
+    NOTE: Not all colors support additional tweaks such as "bold" or "bright" (etc.). Look at all available colors
+          via the rich.color.ANSI_COLOR_NAMES list (from rich.color import ANSI_COLOR_NAMES; print(ANSI_COLOR_NAMES))
+    """
+
     # fmt: off
     label:  str
     color:  str
@@ -17,6 +24,10 @@ class LoggerTextSpec:
 
 
 class LoggerEnumBase(Enum):
+    """
+    Base class for logger enums with text specifications.
+    """
+
     value: LoggerTextSpec
 
     @property
@@ -37,6 +48,10 @@ class LoggerEnumBase(Enum):
 
 
 class LoggerTaskTerminationType(LoggerEnumBase):
+    """
+    Types of task termination statuses.
+    """
+
     # fmt: off
     SUCCESS = LoggerTextSpec("Success", "green" , False, False)
     FAILURE = LoggerTextSpec("Failure", "red"   , False, False)
@@ -46,6 +61,10 @@ class LoggerTaskTerminationType(LoggerEnumBase):
 
 
 class LoggerSeverity(LoggerEnumBase):
+    """
+    Severity levels for logging messages.
+    """
+
     # fmt: off
     DEBUG   = LoggerTextSpec(" DEBUG ", "cyan",    False, False)
     INFO    = LoggerTextSpec("  INFO ", "blue",    False, False)
@@ -61,6 +80,10 @@ LoggerEnum = Union[LoggerSeverity, LoggerTaskTerminationType]
 
 # TODO: Maybe organize better / replace?
 class TaskInfo(TypedDict):
+    """
+    Information about a logged task.
+    """
+
     # fmt: off
     name:      str
     total:     int

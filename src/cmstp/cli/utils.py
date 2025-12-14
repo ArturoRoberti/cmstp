@@ -4,7 +4,7 @@ from pathlib import Path
 GROUP_CONTEXT_SETTINGS = {
     "help_option_names": ["-h", "--help"],
     "max_content_width": 200,
-}  # optional: controls text wrapping
+}
 SUBCOMMAND_CONTEXT_SETTINGS = {
     "ignore_unknown_options": True,
     "allow_extra_args": True,
@@ -13,5 +13,12 @@ SUBCOMMAND_CONTEXT_SETTINGS = {
 
 
 def get_prog(info_name: str) -> str:
-    """Build a prog string for argparse subcommands."""
+    """
+    Build a prog string for argparse subcommands.
+
+    :param info_name: Name of the subcommand
+    :type info_name: str
+    :return: The program string for later usage in argparse
+    :rtype: str
+    """
     return f"{Path(sys.argv[0]).name} {info_name}"

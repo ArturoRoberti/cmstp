@@ -1,4 +1,14 @@
 check_install_vscode() {
+  : '
+    Check if Visual Studio Code is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the VSCode executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local vscode_path=$(command -v code)
   if [ -n "$vscode_path" ]; then
     echo "$vscode_path"
@@ -9,6 +19,16 @@ check_install_vscode() {
 }
 
 check_install_conda() {
+  : '
+    Check if Conda (Miniconda/Anaconda) is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the Conda executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local conda_path=$(bash -ic 'echo $CONDA_EXE')
   if [ -n "$conda_path" ]; then
     echo "$conda_path"
@@ -19,6 +39,16 @@ check_install_conda() {
 }
 
 check_install_mamba() {
+  : '
+    Check if Mamba (Micromamba/Mamba) is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the Mamba executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local mamba_path=$(bash -ic 'echo $MAMBA_EXE')
   if [ -n "$mamba_path" ]; then
     echo "$mamba_path"
@@ -30,6 +60,16 @@ check_install_mamba() {
 
 # TODO: Seems to fail?
 check_install_fzf() {
+  : '
+    Check if fzf is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the fzf executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local fzf_path=$(bash -ic 'command -v fzf || true')
   if [ -n "$fzf_path" ]; then
     echo "$fzf_path"
@@ -40,6 +80,16 @@ check_install_fzf() {
 }
 
 check_install_loki_shell() {
+  : '
+    Check if Loki Shell Docker container is running.
+
+    Args:
+      None
+    Outputs:
+      Docker container info if running.
+    Returns:
+      0 if running, 1 otherwise
+    '
   local loki_container=$(docker ps -a | grep loki)
   if [ -n "$loki_container" ]; then
     echo "$loki_container"
@@ -50,7 +100,16 @@ check_install_loki_shell() {
 }
 
 check_install_docker() {
-  # Check if Docker command is available
+  : '
+    Check if Docker is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the Docker executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local docker_path=$(command -v docker)
   if [ -n "$docker_path" ]; then
     echo "$docker_path"
@@ -60,6 +119,16 @@ check_install_docker() {
 }
 
 check_install_container_toolkit() {
+  : '
+    Check if NVIDIA Container Toolkit is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the nvidia-ctk executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local nvidia_ctk_path=$(command -v nvidia-ctk)
   if [ -n "$nvidia_ctk_path" ]; then
     echo "$nvidia_ctk_path"
@@ -70,6 +139,16 @@ check_install_container_toolkit() {
 }
 
 check_install_nvidia_driver() { # TODO: Test if this works without reboot (thanks to modprobe)
+  : '
+    Check if NVIDIA driver is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the nvidia-smi executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   # TODO: bash -ic necessary?
   local nvidia_smi_path=$(bash -ic 'sudo modprobe nvidia && command -v nvidia-smi || true')
   if [ -n "$nvidia_smi_path" ]; then
@@ -81,6 +160,16 @@ check_install_nvidia_driver() { # TODO: Test if this works without reboot (thank
 }
 
 check_install_cuda() {
+  : '
+    Check if CUDA toolkit is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the nvcc executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   # TODO: bash -ic necessary?
   local nvcc_path=$(bash -ic 'command -v nvcc || true')
   if [ -n "$nvcc_path" ]; then
@@ -92,6 +181,16 @@ check_install_cuda() {
 }
 
 check_install_ros() {
+  : '
+    Check if ROS (ROS1 or ROS2) is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the roscore or ros2 executable if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local setup_script=""
   if [[ -d "/opt/ros/" ]]; then
     setup_script=$(sudo find /opt/ros/ -name "setup.bash" | head -n1)
@@ -111,7 +210,16 @@ check_install_ros() {
 
 # TODO (test install without starting window etc. - maybe import isaacsim as a module?)
 check_install_isaacsim() {
-  :
+  : '
+    Check if NVIDIA Isaac Sim is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the Isaac Sim installation if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   local isaacsim_path=$(bash -ic 'echo ${ISAACSIM_PATH}')
   local isaacsim_python_exe=$(bash -ic 'echo ${ISAACSIM_PYTHON_EXE}')
   if [ -d "$isaacsim_path" ] && [ -f "$isaacsim_python_exe" ]; then
@@ -126,11 +234,30 @@ check_install_isaacsim() {
 
 # TODO (test install without starting window etc.)
 check_install_isaaclab() {
-  :
+  : '
+    Check if NVIDIA Isaac Lab is installed.
+
+    Args:
+      None
+    Outputs:
+      Path to the Isaac Lab installation if installed.
+    Returns:
+      0 if installed, 1 otherwise
+    '
   # python scripts/tutorials/00_sim/create_empty.py
 }
 
 check_gcc_version() {
+  : '
+    Check if the default GCC version is compatible with the kernel compiler version.
+
+    Args:
+      None
+    Outputs:
+      Compatibility message.
+    Returns:
+      0 if compatible, 1 otherwise
+    '
   # Get kernel compiler version
   local kernel_cc=$(grep "CONFIG_CC_VERSION_TEXT" /boot/config-$(uname -r) | cut -d'"' -f2)
   local kernel_major=$(echo "$kernel_cc" | grep -oP '\bgcc-\K[0-9]+')
