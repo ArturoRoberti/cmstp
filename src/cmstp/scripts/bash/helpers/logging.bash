@@ -1,24 +1,28 @@
 log_step() {
-  # TODO: Allow (via input) to send to stderr instead of stdout
   : '
-    Log a step message with optional progress indicator.
+    Log a step message without advancing progress.
 
     Args:
       - message:   Message to log.
-      - progress:  (Optional) Whether to show progress indicator (default: false).
+      - stderr:    Output stream (e.g., /dev/stderr if True or /dev/stdout if False).
     Outputs:
       Log messages indicating the current progress
     Returns:
       0 (unless an unexpected error occurs)
     '
   local message="$1"
-  local progress="${2:-false}"
+  local stderr="${2:-false}"
 
-  if [ "$progress" == true ]; then
-    echo -e "\n__STEP__: $message"
+  # Choose file descriptor
+  local fd
+  if [ "$stderr" = false ]; then
+    fd=1
   else
-    echo -e "\n__STEP_NO_PROGRESS__: $message"
+    fd=2
   fi
+
+  # Log step without advancing progress
+  echo -e "\n__STEP_NO_PROGRESS__: $message" >&"$fd"
 }
 
 # TODO: Use this in "log_to_file". Maybe have extra arg there to enable/disable existing marker removal

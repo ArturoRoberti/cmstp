@@ -71,7 +71,7 @@ def install_packages_from_list(
         cmd = f"{install_command.value} {pkg}"
         result = subprocess.run(cmd, shell=True)
         if result.returncode != 0:
-            Logger.step(f"Failed to install package: {pkg}")
+            Logger.step(f"Failed to install package: {pkg}", stderr=True)
         else:
             Logger.step(f"Successfully installed package: {pkg}")
 

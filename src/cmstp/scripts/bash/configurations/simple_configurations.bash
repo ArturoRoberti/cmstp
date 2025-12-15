@@ -21,7 +21,7 @@ configure_bashrc() {
   # Parse config args
   get_config_args "$@"
   if [ -z "$CONFIG_FILE" ]; then
-    log_step "Skipping configuration of the ~/.bashrc, as no task config file is provided" false
+    log_step "Skipping configuration of the ~/.bashrc, as no task config file is provided" true
     return 0
   fi
 

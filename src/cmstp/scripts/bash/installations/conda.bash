@@ -32,8 +32,8 @@ install_conda() {
     install_anaconda=true
   fi
   if ! $install_miniconda && ! $install_anaconda; then
-    log_step "No conda installation type (miniconda/anaconda) specified - Exiting"
-    return 0
+    log_step "No conda installation type (miniconda/anaconda) specified - Exiting" true
+    return 1
   fi
 
   # Get OS type/name
@@ -49,7 +49,7 @@ install_conda() {
       os_name="Windows"
       ;;
     *)
-      log_step "Unsupported OS type: ${SYSTEM_INFO[type]}"
+      log_step "Unsupported OS type: ${SYSTEM_INFO[type]}" true
       return 1
       ;;
   esac
@@ -109,10 +109,12 @@ _install_micromamba() {
     return 0
   fi
 
-  # (STEP_NO_PROGRESS) Installing Requirement(s)
+  # Install requirements
+  log_step "Installing Requirement(s)"
   apt_install curl
 
-  # (STEP_NO_PROGRESS) Installing Micromamba
+  # Install Micromamba
+  log_step "Installing Micromamba"
   curl -L https://micro.mamba.pm/install.sh | PREFIX_LOCATION="$HOME/.micromamba" "${SHELL}"
 
   # Verify installation
@@ -139,11 +141,12 @@ _install_mamba() {
 
   # Check if conda is installed
   if ! check_install_conda; then
-    log_step "Conda is not installed (Task-Dependency)  - Exiting"
+    log_step "Conda is not installed (Task-Dependency)  - Exiting" true
     return 1
   fi
 
-  # (STEP_NO_PROGRESS) Installing Mamba
+  # Install Mamba via Conda
+  log_step "Installing Mamba"
   bash -ic 'conda install -y -c conda-forge mamba'
   bash -ic 'mamba shell init'
 
@@ -176,7 +179,7 @@ install_mamba() {
   elif _contains REMAINING_ARGS "mamba"; then
     _install_mamba "$@"
   else
-    log_step "No (micro)mamba installation type specified - Exiting"
+    log_step "No (micro)mamba installation type specified - Exiting" true
     return 1
   fi
 }

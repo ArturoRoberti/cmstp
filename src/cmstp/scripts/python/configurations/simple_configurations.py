@@ -28,7 +28,10 @@ def configure_pinned_apps(*args: List[str]) -> None:
     # Parse config args
     _, config_file, _, _ = get_config_args(args)
     if config_file is None:
-        # (STEP_NO_PROGRESS) Skipping configuration of pinned apps, as no task config file is provided
+        Logger.step(
+            "Skipping configuration of pinned apps, as no task config file is provided",
+            stderr=True,
+        )
         return
 
     # Get apps to pin
@@ -52,7 +55,10 @@ def configure_filestructure(*args: List[str]) -> None:
     # Parse config args
     _, config_file, force, remaining_args = get_config_args(args)
     if config_file is None:
-        # (STEP_NO_PROGRESS) Skipping configuration of pinned apps, as no task config file is provided
+        Logger.step(
+            "Skipping configuration of file structure, as no task config file is provided",
+            stderr=True,
+        )
         return
 
     def recursive_create_structure(
@@ -63,7 +69,10 @@ def configure_filestructure(*args: List[str]) -> None:
             if (content is None or isinstance(content, str)) and (
                 dest_path.exists() and not overwrite
             ):
-                # (STEP_NO_PROGRESS) Path {dest_path} already exists. Skipping creation...
+                Logger.step(
+                    f"Path {dest_path} already exists. Skipping creation...",
+                    stderr=True,
+                )
                 continue
 
             if content is None:
@@ -98,56 +107,78 @@ def configure_filestructure(*args: List[str]) -> None:
                     content = Path(path).expanduser()
                     string_type = "link"
                 else:
-                    # (STEP_NO_PROGRESS) Skipping unsupported string content '{content}' for destination path '{dest_path}'
+                    Logger.step(
+                        f"Unsupported string content '{content}' for destination path '{dest_path}'. Skipping...",
+                        stderr=True,
+                    )
                     continue
 
                 # Check existence for local paths
                 if (
                     string_type == "link" or string_type == "path"
                 ) and not content.exists():
-                    # (STEP_NO_PROGRESS) Source {string_type} {content} does not exist. Skipping...
+                    Logger.step(
+                        f"Source {string_type} {content} does not exist. Skipping...",
+                        stderr=True,
+                    )
                     continue
 
                 # Get content based on type
                 if string_type == "git":
-                    # (STEP_NO_PROGRESS) Cloning git repository {content} into {dest_path}...
+                    Logger.step(
+                        f"Cloning git repository {content} into {dest_path}..."
+                    )
                     # TODO: Optimize cloning for if the repo exists multiple times in the yaml. Maybe in general have tmpdir with all git repos and some caching?
                     cloned_path = clone_git_files(
                         content, dest_path, overwrite
                     )
                     if cloned_path is None:
-                        # (STEP_NO_PROGRESS) Failed to clone git repository {content}. Skipping...
-                        pass
+                        Logger.step(
+                            f"Failed to clone git repository {content}. Skipping...",
+                            stderr=True,
+                        )
+                        continue
                 elif string_type == "url":
-                    # (STEP_NO_PROGRESS) Downloading file from {content} to {dest_path}...
+                    Logger.step(
+                        f"Downloading file from {content} to {dest_path}..."
+                    )
                     response = requests.get(
                         content, timeout=60, headers={"Accept-Encoding": "*"}
                     )
                     if response.status_code == 200:
                         dest_path.write_bytes(response.content)
                     else:
-                        # (STEP_NO_PROGRESS) Failed to download file from {content}. HTTP status code: {response.status_code}
-                        pass
+                        Logger.step(
+                            f"Failed to download file from {content}. HTTP status code: {response.status_code}",
+                            stderr=True,
+                        )
                 elif string_type == "path":
-                    # (STEP_NO_PROGRESS) Copying from local path {content} to {dest_path}...
+                    Logger.step(
+                        f"Copying from local path {content} to {dest_path}..."
+                    )
                     if content.is_file():
                         copy2(content, dest_path)
                     elif content.is_dir():
                         copytree(content, dest_path, dirs_exist_ok=True)
                 elif string_type == "link":
-                    # (STEP_NO_PROGRESS) Creating symlink from {content} to {dest_path}...
+                    Logger.step(
+                        f"Creating symlink from {content} to {dest_path}..."
+                    )
                     dest_path.symlink_to(content)
                 else:
                     Logger.step(
-                        f"Unknown string type '{string_type}' for {dest_path} (SHOULD NOT HAPPEN). Skipping..."
+                        f"Unknown string type '{string_type}' for {dest_path} (SHOULD NOT HAPPEN). Skipping...",
+                        stderr=True,
                     )
+                    continue
             elif isinstance(content, dict):
                 # It's a directory with further contents
                 dest_path.mkdir(exist_ok=True)
                 recursive_create_structure(dest_path, content, overwrite, sudo)
             else:
                 Logger.step(
-                    f"Unsupported entry type '{type(content)}' for {content}. Skipping..."
+                    f"Unsupported entry type '{type(content)}' for {content}. Skipping...",
+                    stderr=True,
                 )
 
             # Revert to user permissions if under HOME directory
@@ -193,7 +224,10 @@ def configure_vscode_keybindings(*args: List[str]) -> None:
     # Parse config args
     _, config_file, _, _ = get_config_args(args)
     if config_file is None:
-        # (STEP_NO_PROGRESS) Skipping configuration of VSCode keybindings, as no task config file is provided
+        Logger.step(
+            "Skipping configuration of VSCode keybindings, as no task config file is provided",
+            stderr=True,
+        )
         return
 
     # Check VSCode installation

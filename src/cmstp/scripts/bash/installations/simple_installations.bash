@@ -82,7 +82,7 @@ install_loki_shell() {
     log_step "loki-shell is already installed - Exiting"
     return 0
   elif ! check_install_docker; then
-    error_msg "Docker must be installed before installing loki-shell"
+    log_step "Docker must be installed before installing loki-shell" true
     return 1
   fi
 

@@ -17,21 +17,25 @@ _install_container_toolkit() {
     return 0
   fi
 
-  # (STEP_NO_PROGRESS) Adding NVIDIA GPG key
+  # Add NVIDIA GPG key
+  log_step "Adding NVIDIA GPG key"
   local nvidia_gpg_file="/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg"
   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey |
     sudo gpg --dearmor | sudo tee "$nvidia_gpg_file"
 
-  # (STEP_NO_PROGRESS) Adding NVIDIA Container Toolkit apt repository
+  # Add NVIDIA Container Toolkit apt repository
+  log_step "Adding NVIDIA Container Toolkit apt repository"
   curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list |
     sed "s#deb https://#deb [signed-by=$nvidia_gpg_file] https://#g" |
     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
   sudo apt-get update
 
-  # (STEP_NO_PROGRESS) Installing NVIDIA Container Toolkit
+  # Install NVIDIA Container Toolkit
+  log_step "Installing NVIDIA Container Toolkit"
   apt_install nvidia-container-toolkit
 
-  # (STEP_NO_PROGRESS) Configuring Docker runtime
+  # Configure Docker runtime
+  log_step "Configuring Docker runtime"
   sudo nvidia-ctk runtime configure --runtime=docker
   sudo systemctl restart docker
 
@@ -44,7 +48,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     Install Docker Engine and related components.
     '
   # Parse config args
-  get_config_args "$@" || exit 1
+  get_config_args "$@"
 
   # Check if Docker is already installed
   if check_install_docker && [[ "$FORCE" == false ]]; then

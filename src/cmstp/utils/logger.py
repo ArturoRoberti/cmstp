@@ -53,10 +53,10 @@ class LoggerTaskTerminationType(LoggerEnumBase):
     """
 
     # fmt: off
-    SUCCESS = LoggerTextSpec("Success", "green" , False, False)
-    FAILURE = LoggerTextSpec("Failure", "red"   , False, False)
-    SKIPPED = LoggerTextSpec("Skipped", "yellow", False, False)
-    PARTIAL = LoggerTextSpec("Partial", "orange", False, False)
+    SUCCESS = LoggerTextSpec("Success", "green"  , False, False)
+    FAILURE = LoggerTextSpec("Failure", "red"    , False, False)
+    SKIPPED = LoggerTextSpec("Skipped", "yellow" , False, False)
+    PARTIAL = LoggerTextSpec("Partial", "orange1", False, False)
     # fmt: on
 
 

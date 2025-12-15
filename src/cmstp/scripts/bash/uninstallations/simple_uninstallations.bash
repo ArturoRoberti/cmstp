@@ -20,7 +20,7 @@ uninstall_fzf() {
 
   # Verify installation
   if check_install_fzf; then
-    log_step "fzf uninstallation failed"
+    log_step "fzf uninstallation failed" true
     return 1
   fi
 }
@@ -48,7 +48,7 @@ uninstall_loki_shell() {
 
   # Verify installation
   if check_install_loki_shell; then
-    log_step "loki-shell uninstallation failed"
+    log_step "loki-shell uninstallation failed" true
     return 1
   fi
 }

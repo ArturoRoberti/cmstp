@@ -14,7 +14,6 @@ from cmstp.utils.common import (
 )
 
 
-# TODO: Make sure that "args" does not change over function calls
 def run_script_function(
     script: FilePath,
     function: Optional[str] = None,

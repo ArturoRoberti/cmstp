@@ -256,15 +256,15 @@ class Logger:
     def finish_task(
         self,
         task_id: int,
-        success: bool,
+        success: LoggerTaskTerminationType,
     ) -> None:
         """
         Mark a task as finished, updating its progress and description.
 
         :param task_id: ID of the task
         :type task_id: int
-        :param success: Whether the task completed successfully
-        :type success: bool
+        :param success: Task termination type indicating how the task completed
+        :type success: LoggerTaskTerminationType
         """
         with self._tasks_lock:
             if task_id not in self.task_infos:
@@ -280,14 +280,19 @@ class Logger:
             logfile = task_info["logfile"]
             task_name = task_info["name"]
 
-        if success:  # TODO: Expand to more than boolean
+        if success == LoggerTaskTerminationType.SUCCESS:
             symbol = "✔"
-            termination_type = LoggerTaskTerminationType.SUCCESS
-        else:
+        elif success == LoggerTaskTerminationType.PARTIAL:
+            symbol = "⚠"
+            # self._failed_tasks[task_name] = logfile  # TODO: Keep?
+        elif success == LoggerTaskTerminationType.SKIPPED:
+            symbol = "⊘"
+        elif success == LoggerTaskTerminationType.FAILURE:
             symbol = "✖"
-            termination_type = LoggerTaskTerminationType.FAILURE
             self._failed_tasks[task_name] = logfile
-        desc = f"[{termination_type.color}]{symbol} {termination_type.label}: {task_name}[/{termination_type.color}]"
+        else:
+            raise ValueError("Unknown task termination type")
+        desc = f"[{success.color}]{symbol} {success.label}: {task_name}[/{success.color}]"
         if logfile:
             desc += f" [blue](log: {logfile})[/blue]"
         self._progress.update(task_id, completed=total, description=desc)
@@ -326,14 +331,19 @@ class Logger:
         richprint(f"{prefix}{logstart} {message}")
 
     @staticmethod
-    def step(message: str, progress: bool = False) -> None:
-        # TODO: Allow (via input) to send to stderr instead of stdout
+    def step(message: str, stderr: bool = False) -> None:
         """
         Log a step message indicating progress. Only to be used from within tasks.
 
         :param message: The message
         :type message: str
+        :param stderr: Whether to log to stderr
+        :type stderr: bool
         :param progress: Whether to progress the task
         :type progress: bool
         """
-        print(f"\n__STEP{'_NO_PROGRESS' if not progress else ''}__: {message}")
+        output = f"\n__STEP_NO_PROGRESS__: {message}"
+        if stderr:
+            print(output, file=sys.stderr)
+        else:
+            print(output)
