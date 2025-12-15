@@ -24,6 +24,18 @@ def generate_random_path(
     prefix: Optional[str] = None,
     create: bool = False,
 ) -> Path:
+    """
+    Generate a random temporary file or directory path.
+
+    :param suffix: Suffix for the temporary file or directory
+    :type suffix: Optional[str]
+    :param prefix: Prefix for the temporary file or directory
+    :type prefix: Optional[str]
+    :param create: Whether to create the file or directory
+    :type create: bool
+    :return: Path to the temporary file or directory
+    :rtype: Path
+    """
     if suffix is not None and suffix.startswith("."):
         # File
         fd, path = mkstemp(suffix, prefix)
@@ -39,16 +51,15 @@ def generate_random_path(
     return Path(path)
 
 
-def is_simple_path(path: FilePath) -> bool:
-    invalid = '<>:"|?*@'
-    return not any(ch in invalid for ch in str(path))
-
-
 def resolve_package_path(raw_script: FilePath) -> Optional[FilePath]:
     """
     Resolve paths that may refer to package resources. Package paths are in the format:
         "package://<package-name>/relative/path/inside/package"
-    The input type (should be Path or str) is preserved in the output.
+
+    :param raw_script: Raw script path
+    :type raw_script: FilePath
+    :return: Resolved script path or None if package not found. The output type matches the input type.
+    :rtype: FilePath | None
     """
     # Return wrong types as-is
     if not isinstance(raw_script, (Path, str)):

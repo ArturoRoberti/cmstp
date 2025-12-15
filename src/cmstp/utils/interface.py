@@ -22,15 +22,22 @@ def run_script_function(
     sudo: bool = False,
 ) -> Union[str, subprocess.CompletedProcess]:
     """
-    Build a wrapper script string for the specified command kind and possibly execute it.
-    Args:
-        script (Path | str):      The path to the script to source or execute.
-        function (Optional[str]): The function within the script to call. If None, the script is executed directly.
-        run (bool):               If True, executes the script. Otherwise, returns the string.
-        capture_output (bool):    If True, captures the output of the script. Ignored if run=False.
-    Returns:
-        str | subprocess.CompletedProcess: The generated script string (if run=False)
-                                           or the subprocess result (if run=True).
+    Build a wrapper script string for the specified command kind and optionally execute it.
+
+    :param script: The path to the script to source or execute.
+    :type script: FilePath
+    :param function: The function within the script to call. If None, the script is executed directly.
+    :type function: Optional[str]
+    :param args: Arguments to pass to the function or script
+    :type args: List[str]
+    :param run: If True, executes the script. Otherwise, returns the string.
+    :type run: bool
+    :param capture_output: If True, captures the output of the script. Ignored if run=False.
+    :type capture_output: bool
+    :param sudo: If True, runs python scripts with sudo privileges.
+    :type sudo: bool
+    :return: The generated script string (if run=False)
+    :rtype: str | CompletedProcess
     """
     if not Path(script).exists():
         raise FileNotFoundError(f"Script file not found: {script}")
@@ -59,15 +66,20 @@ def _run_bash_script_function(
     capture_output: bool,
 ) -> Union[str, subprocess.CompletedProcess]:
     """
-    Build a bash wrapper script string and possibly execute it.
-    Args:
-        script (Path | str):      The path to the bash script to source or execute.
-        function (Optional[str]): The function within the script to call. If None, the script is executed directly.
-        run (bool):               If True, executes the script. Otherwise, returns the string.
-        capture_output (bool):    If True, captures the output of the script. Ignored if run=False.
-    Returns:
-        str | subprocess.CompletedProcess: The generated bash script string (if run=False)
-                                           or the subprocess result (if run=True).
+    Build a bash wrapper script string and optionally execute it.
+
+    :param script: The path to the script to source or execute.
+    :type script: FilePath
+    :param function: The function within the script to call. If None, the script is executed directly.
+    :type function: Optional[str]
+    :param args: Arguments to pass to the function or script
+    :type args: List[str]
+    :param run: If True, executes the script. Otherwise, returns the string.
+    :type run: bool
+    :param capture_output: If True, captures the output of the script. Ignored if run=False.
+    :type capture_output: bool
+    :return: The generated script string (if run=False)
+    :rtype: str | CompletedProcess
     """
     # Source pipx venv and helpers
     sourcing = dedent(
@@ -132,15 +144,22 @@ def _run_python_script_function(
     sudo: bool,
 ) -> Union[str, subprocess.CompletedProcess]:
     """
-    Build a Python wrapper script string and possibly execute it.
-    Args:
-        script (Path | str):      The path to the Python script to import or execute.
-        function (Optional[str]): The function within the script to call. If None, the script is executed directly.
-        run (bool):               If True, executes the script. Otherwise, returns the string.
-        capture_output (bool):    If True, captures the output of the script. Ignored if run=False.
-    Returns:
-        str | subprocess.CompletedProcess: The generated Python script string (if run=False)
-                                           or the subprocess result (if run=True).
+    Build a Python wrapper script string and optionally execute it.
+
+    :param script: The path to the script to source or execute.
+    :type script: FilePath
+    :param function: The function within the script to call. If None, the script is executed directly.
+    :type function: Optional[str]
+    :param args: Arguments to pass to the function or script
+    :type args: List[str]
+    :param run: If True, executes the script. Otherwise, returns the string.
+    :type run: bool
+    :param capture_output: If True, captures the output of the script. Ignored if run=False.
+    :type capture_output: bool
+    :param sudo: If True, runs python scripts with sudo privileges.
+    :type sudo: bool
+    :return: The generated script string (if run=False)
+    :rtype: str | CompletedProcess
     """
     if function:
         # Import the module dynamically and call the function
@@ -184,7 +203,14 @@ def _run_python_script_function(
 
 
 def bash_check(check_name: str) -> subprocess.CompletedProcess:
-    """Run a (helper) check function"""
+    """
+    Run a (helper) check function
+
+    :param check_name: Name of the check function to run
+    :type check_name: str
+    :return: CompletedProcess result of the check
+    :rtype: CompletedProcess
+    """
     # Create a mock bash file (used only as a placeholder)
     with NamedTemporaryFile(
         mode="w", suffix=".bash", delete=False
@@ -214,7 +240,12 @@ def bash_check(check_name: str) -> subprocess.CompletedProcess:
 
 
 def revert_sudo_permissions(path: FilePath) -> None:
-    """Revert sudo permissions on the specified path using bash helper."""
+    """
+    Revert sudo permissions on the specified path using bash helper.
+
+    :param path: Path to revert permissions on
+    :type path: FilePath
+    """
     run_script_function(
         script=PACKAGE_BASH_HELPERS_PATH,
         function="revert_sudo_permissions",

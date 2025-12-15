@@ -15,8 +15,13 @@ from cmstp.scripts.python.helpers.processing import (
 from cmstp.utils.interface import bash_check
 
 
-def add_alias(command: str):
-    """Add alias to .bashrc if it doesn't already exist."""
+def add_alias(command: str) -> None:
+    """
+    Add an alias to ~/.bashrc if it doesn't already exist.
+
+    :param command: Description
+    :type command: str
+    """
     bashrc_path = Path.home() / ".bashrc"
     alias_cmd = f"alias {command}"
     with open(bashrc_path, "r", encoding="utf-8") as bashrc:
@@ -26,8 +31,13 @@ def add_alias(command: str):
         bashrc.write(f"\n{alias_cmd}\n")
 
 
-def install_apt_packages(*args):
-    """Install packages using apt package manager."""
+def install_apt_packages(*args: List[str]) -> None:
+    """
+    Install packages using apt package manager.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:
@@ -40,8 +50,13 @@ def install_apt_packages(*args):
     install_packages_from_txt_file(InstallCommands.APT, config_file)
 
 
-def install_snap_packages(*args):
-    """Install packages using snap package manager."""
+def install_snap_packages(*args: List[str]) -> None:
+    """
+    Install packages using snap package manager.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:
@@ -57,8 +72,13 @@ def install_snap_packages(*args):
     install_packages_from_txt_file(InstallCommands.SNAP, config_file)
 
 
-def install_flatpak_packages(*args):
-    """Install packages using flatpak package manager."""
+def install_flatpak_packages(*args: List[str]) -> None:
+    """
+    Install packages using flatpak package manager.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, remaining_args = get_config_args(args)
     if config_file is None:
@@ -98,8 +118,13 @@ def install_flatpak_packages(*args):
             add_alias(f"{pkg_name}='(flatpak run {pkg_name} > /dev/null &)'")
 
 
-def install_npm_packages(*args):
-    """Install packages using npm package manager."""
+def install_npm_packages(*args: List[str]) -> None:
+    """
+    Install packages using npm package manager.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:
@@ -115,8 +140,13 @@ def install_npm_packages(*args):
     install_packages_from_txt_file(InstallCommands.NPM, config_file)
 
 
-def install_pipx_packages(*args):
-    """Install packages using pipx package manager."""
+def install_pipx_packages(*args: List[str]) -> None:
+    """
+    Install packages using pipx package manager.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:
@@ -133,8 +163,13 @@ def install_pipx_packages(*args):
     install_packages_from_txt_file(InstallCommands.PIPX, config_file)
 
 
-def install_vscode_extensions(*args):
-    """Install VSCode extensions."""
+def install_vscode_extensions(*args: List[str]) -> None:
+    """
+    Install VSCode extensions.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:
@@ -156,8 +191,13 @@ def install_vscode_extensions(*args):
     install_packages_from_txt_file(InstallCommands.VSC_EXT, config_file)
 
 
-def install_docker_images(*args):
-    """Pull docker images from Docker Hub."""
+def install_docker_images(*args: List[str]) -> None:
+    """
+    Pull docker images from Docker Hub.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:

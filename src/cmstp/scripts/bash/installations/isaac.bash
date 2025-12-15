@@ -1,6 +1,13 @@
 get_latest_isaacsim_version() {
   : '
     Function to get the latest Isaac Sim version from release notes
+
+    Args:
+      None
+    Outputs:
+      Latest Isaac Sim version string
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local URL="https://docs.isaacsim.omniverse.nvidia.com/latest/overview/release_notes.html"
   curl -s "$URL" |
@@ -13,6 +20,13 @@ get_latest_isaacsim_version() {
 install_isaacsim() {
   : '
     Function to install Isaac Sim (only officially supported versions)
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Parse config args
   get_config_args "$@"
@@ -93,6 +107,13 @@ install_isaacsim() {
 get_latest_isaaclab_version() {
   : '
     Function to get the latest IsaacLab version from the version dropdown
+
+    Args:
+      None
+    Outputs:
+      Latest Isaac Lab version string
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local URL="https://isaac-sim.github.io/IsaacLab/main/index.html"
   curl -s "$URL" |
@@ -106,6 +127,13 @@ get_latest_isaaclab_version() {
 install_isaaclab() {
   : '
     Function to install Isaac Lab (only officially supported versions)
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Parse config args
   get_config_args "$@"
@@ -191,6 +219,16 @@ install_isaaclab() {
 }
 
 find_best_isaaclab() {
+  : '
+    Function to find the best matching IsaacLab version for a given IsaacSim version
+
+    Args:
+      - isaacsim_version:   IsaacSim version string (e.g. "5.2.1")
+    Outputs:
+      Best matching IsaacLab version string (e.g. "v2.3.0")
+    Returns:
+      0 (unless an unexpected error occurs)
+    '
   local isaacsim_version="$1"
 
   # Get IsaacLab version mappings

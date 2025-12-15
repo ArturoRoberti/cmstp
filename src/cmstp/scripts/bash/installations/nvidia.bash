@@ -2,8 +2,17 @@
 
 # TODO: Use "SYSTEM_INFO['simulate_hardware']" flag
 
-# Extract table rows for Linux driver versions
-extract_table_rows() {
+_extract_table_rows() {
+  : '
+    Extract table rows from NVIDIA CUDA compatibility HTML page
+
+    Args:
+      - html:   HTML content as a string
+    Outputs:
+      Table rows as a string
+    Returns:
+      0 (unless an unexpected error occurs)
+    '
   local html="$1"
 
   # Extract table info - NOTE: Title may change over time
@@ -13,8 +22,17 @@ extract_table_rows() {
     sed 's%</tr>%\n%g; s%<t[dh][^>]*>%%g; s%</t[dh]>%|%g; s/<[^>]*>//g; s/&#13;//g; s/&gt;/>/g; s/&nbsp;/ /g'
 }
 
-# Parse table rows into a simple CUDA -> driver mapping
-parse_cuda_driver_map() {
+_parse_cuda_driver_map() {
+  : '
+    Parse table rows into a simple CUDA -> driver mapping
+
+    Args:
+      - rows:   Table rows as a string
+    Outputs:
+      CUDA to driver version mapping as "CUDA_version:driver_version" per line
+    Returns:
+      0 (unless an unexpected error occurs)
+    '
   local rows="$1"
   awk -F'|' '{
         gsub(/^ +| +$/,"",$1); gsub(/^ +| +$/,"",$2);
@@ -22,28 +40,20 @@ parse_cuda_driver_map() {
     }' <<<"$rows"
 }
 
-# Determine the maximum width of major, minor, patch in a list of versions
-get_max_version_widths() {
-  local versions="$1"
-  local max_major=0 max_minor=0 max_patch=0
-  local major minor patch
+_ver2num() {
+  : '
+    Convert version string "X.Y.Z" to a comparable number by padding each component.
 
-  while IFS=: read -r _ req_ver; do
-    req_ver=$(clean_ver "$req_ver")
-    IFS='.' read -r major minor patch <<<"$req_ver"
-    major=$(echo "$major" | xargs)
-    minor=$(echo "$minor" | xargs)
-    patch=$(echo "$patch" | xargs)
-    ((${#major} > max_major)) && max_major=${#major}
-    ((${#minor} > max_minor)) && max_minor=${#minor}
-    ((${#patch} > max_patch)) && max_patch=${#patch}
-  done <<<"$versions"
-
-  echo "$max_major $max_minor $max_patch"
-}
-
-# Convert version string "X.Y.Z" to a comparable number
-ver2num() {
+    Args:
+      - v:           Version string (e.g. "535.54.03")
+      - max_major:   Maximum width for major version
+      - max_minor:   Maximum width for minor version
+      - max_patch:   Maximum width for patch version
+    Outputs:
+      Comparable version number as a string
+    Returns:
+      0 (unless an unexpected error occurs)
+    '
   local v="$1"
   local max_major="$2"
   local max_minor="$3"
@@ -59,8 +69,17 @@ ver2num() {
   echo "$padded"
 }
 
-# Clean version string: remove >=, >, <=, < and pad missing patch
-clean_ver() {
+_clean_version() {
+  : '
+    Clean version string by removing comparison operators and padding missing patch.
+
+    Args:
+      - v:   Version string (e.g. ">=535.54", "<=460.32.03")
+    Outputs:
+      Cleaned version string (e.g. "535.54.0", "460.32.03")
+    Returns:
+      0 (unless an unexpected error occurs)
+    '
   local v="$1"
   v="${v//>=/}"
   v="${v//>/}"
@@ -70,23 +89,61 @@ clean_ver() {
   echo "$v"
 }
 
-# Find the newest compatible CUDA for a given driver
-find_best_cuda() {
+_get_max_version_widths() {
+  : '
+    Determine the maximum width of major, minor, patch in a list of versions
+
+    Args:
+      - versions:   List of versions as "CUDA_version:driver_version" per line
+    Outputs:
+      Maximum widths of major, minor, patch as three space-separated numbers
+    Returns:
+      0 (unless an unexpected error occurs)
+    '
+  local versions="$1"
+  local max_major=0 max_minor=0 max_patch=0
+  local major minor patch
+
+  while IFS=: read -r _ req_ver; do
+    req_ver=$(_clean_version "$req_ver")
+    IFS='.' read -r major minor patch <<<"$req_ver"
+    major=$(echo "$major" | xargs)
+    minor=$(echo "$minor" | xargs)
+    patch=$(echo "$patch" | xargs)
+    ((${#major} > max_major)) && max_major=${#major}
+    ((${#minor} > max_minor)) && max_minor=${#minor}
+    ((${#patch} > max_patch)) && max_patch=${#patch}
+  done <<<"$versions"
+
+  echo "$max_major $max_minor $max_patch"
+}
+
+_find_best_cuda() {
+  : '
+    Find the newest compatible CUDA for a given driver
+
+    Args:
+      - drv_ver:   NVIDIA driver version string (e.g. "535.54.03")
+      - map:       CUDA to driver version mapping as "CUDA_version:driver_version" per line
+    Outputs:
+      Best matching CUDA and driver version as "CUDA_version:driver_version"
+    Returns:
+      0 if found, 1 otherwise
+    '
   local drv_ver="$1"
   local map="$2"
   local best=""
 
   # Compute max widths from the map
-  read max_major max_minor max_patch <<<"$(get_max_version_widths "$map")"
+  read max_major max_minor max_patch <<<"$(_get_max_version_widths "$map")"
   local drv_num
-  drv_num=$(ver2num "$drv_ver" "$max_major" "$max_minor" "$max_patch")
+  drv_num=$(_ver2num "$drv_ver" "$max_major" "$max_minor" "$max_patch")
 
   while IFS=: read -r cuda_ver req_ver; do
     cuda_ver=$(echo "$cuda_ver" | xargs)
     req_ver=$(echo "$req_ver" | xargs)
-    req_ver=$(clean_ver "$req_ver")
-    local req_num
-    req_num=$(ver2num "$req_ver" "$max_major" "$max_minor" "$max_patch")
+    req_ver=$(_clean_version "$req_ver")
+    local req_num=$(_ver2num "$req_ver" "$max_major" "$max_minor" "$max_patch")
     if ((req_num <= drv_num)); then
       best="$cuda_ver:$req_ver"
       break
@@ -98,8 +155,17 @@ find_best_cuda() {
   echo "$best"
 }
 
-# Detect the recommended NVIDIA driver
-detect_recommended_driver() {
+_detect_recommended_driver() {
+  : '
+    Detect the recommended NVIDIA driver using ubuntu-drivers.
+
+    Args:
+      None
+    Outputs:
+      Recommended NVIDIA driver package name (e.g. "nvidia-driver-535")
+    Returns:
+      0 if found, 1 otherwise
+    '
   local drv
   drv=$(ubuntu-drivers devices 2>/dev/null | awk '/recommended/ {print $3; exit}')
   [[ -z "$drv" ]] && return 1
@@ -107,8 +173,17 @@ detect_recommended_driver() {
   echo "$drv"
 }
 
-# Get candidate version from apt
-get_candidate_driver_version() {
+_get_candidate_driver_version() {
+  : '
+    Get the driver version from a given NVIDIA driver package name.
+
+    Args:
+      - driver_pkg:   NVIDIA driver package name (e.g. "nvidia-driver-535")
+    Outputs:
+      Driver version string (e.g. "535.54.03")
+    Returns:
+      0 if found, 1 otherwise
+    '
   local driver_pkg="$1"
   local version
   version=$(apt show "$driver_pkg" 2>/dev/null | awk -F': ' '/^Version:/ {print $2; exit}')
@@ -121,9 +196,16 @@ get_candidate_driver_version() {
   echo "$version"
 }
 
-add_graphics_drivers_ppa() {
+_add_graphics_drivers_ppa() {
   : '
     Add graphics-drivers PPA for latest NVIDIA drivers. Optionally prioritize it above NVIDIA driver packages.
+
+    Args:
+      - prime_select:   Whether to prioritize graphics-drivers PPA for NVIDIA driver packages (default: false)
+    Outputs:
+      Log messages indicating the current progress
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local prime_select="${1:-false}"
 
@@ -149,7 +231,15 @@ EOF
 
 _install_nvidia_driver() {
   : '
-    Install NVIDIA Driver
+    (Internal) Install NVIDIA Driver
+
+    Args:
+      - driver_version:   NVIDIA driver package name (e.g. "nvidia-driver-535")
+      - prime_select:     Whether to prioritize NVIDIA GPU via prime-select (default: false)
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful, 1 otherwise
     '
   local driver_version="$1"
   local prime_select="${2:-false}"
@@ -183,7 +273,14 @@ install_nvidia_driver() {
     Manager NVIDIA Driver PPAs and install NVIDIA Driver.
 
     WARNING: This will install the requested or recommended NVIDIA driver,
-             replacing any existing (cuda-compatible) driver installation.
+             replacing any existing (cuda-repository) driver installation.
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Parse config args
   get_config_args "$@"
@@ -201,13 +298,13 @@ install_nvidia_driver() {
   if _contains REMAINING_ARGS "--prime-select"; then
     prime_select=true
   fi
-  add_graphics_drivers_ppa "$prime_select"
+  _add_graphics_drivers_ppa "$prime_select"
 
   # (STEP) Determining requested NVIDIA driver
   driver_version=""
   if _contains REMAINING_ARGS "recommended"; then
     # (1st Priority) Use recommended driver
-    driver_version=$(detect_recommended_driver)
+    driver_version=$(_detect_recommended_driver)
   elif _contains REMAINING_ARGS "latest"; then
     # (2nd Priority) Use latest available driver
     search_results=$(apt-cache search '^nvidia-driver-[0-9]+')
@@ -238,7 +335,17 @@ install_nvidia_driver() {
   _install_nvidia_driver "$driver_version" "$prime_select"
 }
 
-configure_apt_repositories_cuda() {
+_configure_apt_repositories_cuda() {
+  : '
+    Configure apt repositories for CUDA installation.
+
+    Args:
+      None
+    Outputs:
+      Log messages indicating the current progress
+    Returns:
+      0 (unless an unexpected error occurs)
+    '
   # Remove graphics-drivers PPA prioritization (if previously added via "install-nvidia-driver" task)
   if [[ -f "/etc/apt/preferences.d/cmstp-nvidia-driver-pin" ]]; then
     sudo rm -f /etc/apt/preferences.d/cmstp-nvidia-driver-pin
@@ -271,6 +378,16 @@ EOF
 }
 
 _install_cuda() {
+  : '
+    (Internal) Install CUDA Toolkit
+
+    Args:
+      - cuda_name:   CUDA package name (e.g. "cuda-11-8")
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful, 1 otherwise
+    '
   local cuda_name="$1"
   local cuda_major_minor=$(echo "$cuda_name" | grep -oP '\d+\.\d+')
   local cuda_major=$(echo "$cuda_major_minor" | cut -d. -f1)
@@ -290,7 +407,15 @@ install_cuda() {
     Install NVIDIA Driver and CUDA Toolkit.
 
     WARNING: This will install the recommended NVIDIA driver from the CUDA repository,
-             replacing any existing driver installation and removing prime-select configuration.
+             replacing any existing driver installation and removing any prime-select
+             configuration that may exist on systems with hybrid graphics (e.g. most laptops).
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Parse config args
   get_config_args "$@"
@@ -328,16 +453,16 @@ install_cuda() {
 
   # (STEP) Retrieving CUDA → driver mapping from NVIDIA webpage
   local html_page=$(curl -sS "https://docs.nvidia.com/cuda/cuda-toolkit-release-notes/index.html")
-  local table_rows=$(extract_table_rows "$html_page")
-  local cuda_driver_map=$(parse_cuda_driver_map "$table_rows")
+  local table_rows=$(_extract_table_rows "$html_page")
+  local cuda_driver_map=$(_parse_cuda_driver_map "$table_rows")
 
   # (STEP) Detecting recommended NVIDIA driver
-  configure_apt_repositories_cuda
-  local recommended_driver=$(detect_recommended_driver)
-  local candidate_driver=$(get_candidate_driver_version "$recommended_driver")
+  _configure_apt_repositories_cuda
+  local recommended_driver=$(_detect_recommended_driver)
+  local candidate_driver=$(_get_candidate_driver_version "$recommended_driver")
 
   # (STEP) Parsing CUDA name and version
-  local best_cuda=$(find_best_cuda "$candidate_driver" "$cuda_driver_map")
+  local best_cuda=$(_find_best_cuda "$candidate_driver" "$cuda_driver_map")
   local cuda_name=$(cut -d':' -f1 <<<"$best_cuda")
   local cuda_version=$(cut -d':' -f2 <<<"$best_cuda")
 

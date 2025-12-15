@@ -7,6 +7,8 @@ import distro
 
 
 class SystemInfo(TypedDict):
+    """Detailed information about the host operating system."""
+
     # fmt: off
     type:              str
     kernel:            str
@@ -21,7 +23,12 @@ class SystemInfo(TypedDict):
 
 
 def get_architecture() -> str:
-    """Retrieve the system architecture using dpkg."""
+    """
+    Retrieve the system architecture using dpkg.
+
+    :return: System architecture string
+    :rtype: str
+    """
     result = subprocess.run(
         ["dpkg", "--print-architecture"],
         text=True,
@@ -37,7 +44,12 @@ def get_architecture() -> str:
 
 # TODO: Test if this works without having to install "dmidecode" first (via apt) on a fresh system
 def get_manufacturer() -> str:
-    """Retrieve the system manufacturer using dmidecode."""
+    """
+    Retrieve the system manufacturer using dmidecode.
+
+    :return: System manufacturer string
+    :rtype: str
+    """
     result = subprocess.run(
         ["sudo", "dmidecode", "-s", "system-manufacturer"],
         text=True,
@@ -52,12 +64,21 @@ def get_manufacturer() -> str:
 
 
 def get_system_info() -> SystemInfo:
-    """Retrieve detailed information about the host operating system."""
+    """
+    Retrieve detailed information about the host system.
+
+    :return: System information dictionary
+    :rtype: SystemInfo
+    """
 
     def is_current_test(test_name: str) -> bool:
         """
-        Returns True if the current call stack indicates that we're
-        running inside the given pytest test function name.
+        Checks if the current execution context is within a specific pytest test function.
+
+        :param test_name: Name of the pytest test function
+        :type test_name: str
+        :return: True if running inside the specified test function, False otherwise
+        :rtype: bool
         """
         for frame_info in inspect.stack():
             func = frame_info.function

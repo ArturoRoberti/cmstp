@@ -1,6 +1,13 @@
 install_conda() {
   : '
     Install Conda (Miniconda/Anaconda)
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Parse config args
   get_config_args "$@"
@@ -86,7 +93,14 @@ install_conda() {
 
 install_mamba() {
   : '
-    Install (Micro)Mamba - MicroMamba prioritized over Mamba (if both specified)
+    Install (Micro)Mamba - Micromamba prioritized over Mamba (if both specified)
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # TODO: ToS acceptance for mamba required?
 
@@ -103,7 +117,7 @@ install_mamba() {
     _install_mamba "$@"
   else
     log_step "No (micro)mamba installation type specified - Exiting"
-    return 0
+    return 1
   fi
 }
 
@@ -111,6 +125,13 @@ install_mamba() {
 _install_micromamba() {
   : '
     Install Micromamba
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Check if micromamba is already installed
   if check_install_mamba; then
@@ -132,6 +153,13 @@ _install_micromamba() {
 _install_mamba() {
   : '
     Install Mamba
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Check if mamba is already installed
   if check_install_mamba; then

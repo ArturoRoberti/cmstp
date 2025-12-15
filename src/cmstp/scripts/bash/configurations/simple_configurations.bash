@@ -2,7 +2,14 @@
 
 configure_bashrc() {
   : '
-    Add custom lines to the basrc.
+    Add custom lines to ~/.bashrc.
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress
+    Returns:
+      0 if configured, 1 otherwise
     '
   # Check if already configured
   if check_configure_bashrc; then

@@ -37,6 +37,11 @@ class Scheduler:
         Prepare a copy of the desired script that
         - Uses STEP statements only if in the desired function (or entrypoint)
         - Converts all STEP and STEP_NO_PROGRESS comments into equivalent print statements.
+
+        :param command: Command to prepare
+        :type command: Command
+        :return: Tuple of (path to modified script, number of steps)
+        :rtype: Tuple[Path, int]
         """
         original_path = Path(command.script)
         tmp = NamedTemporaryFile(delete=False, suffix=f"_{original_path.name}")
@@ -50,8 +55,19 @@ class Scheduler:
         loc_indent = None
         function_name = None
 
-        def detect_block_start(stripped: str, indent_len: int):
-            """Return (kind, name, location_indent) or None."""
+        def detect_block_start(
+            stripped: str, indent_len: int
+        ) -> Optional[Tuple[str, Optional[str], int]]:
+            """
+            Detect the start of a function, class, or entrypoint block.
+
+            :param stripped: The stripped line
+            :type stripped: str
+            :param indent_len: The indentation length of the line
+            :type indent_len: int
+            :return: Tuple of (kind, name, location_indent) or None
+            :rtype: Tuple[str, str | None, int] | None
+            """
             # TODO: Can this handle nested functions/classes?
             # Function
             r_func = PatternCollection[command.kind.name].patterns["blocks"][
@@ -78,8 +94,17 @@ class Scheduler:
                 return "entrypoint", None, indent_len
             return None
 
-        def block_end_reached(stripped: str, indent_len: int):
-            """Return True if the current line ends the current block."""
+        def block_end_reached(stripped: str, indent_len: int) -> bool:
+            """
+            Determine if the current line ends the current block.
+
+            :param stripped: The stripped line
+            :type stripped: str
+            :param indent_len: The indentation length of the line
+            :type indent_len: int
+            :return: True if the current line ends the current block, False otherwise
+            :rtype: bool
+            """
             if command.kind == CommandKind.PYTHON:
                 # For python: non-empty line with indent <= loc_indent and not a comment
                 if (
@@ -98,14 +123,10 @@ class Scheduler:
             """
             Determine if a line marks a STEP output
 
-            Args:
-                line (str): The line to check.
-            Returns:
-                Tuple[Optional[str], Optional[str]]: (step message, step type)
-                    step type is
-                    - "comment*" for STEP comments,
-                    - "output*" for STEP print statements
-                    - None if not a STEP line.
+            :param line: The line to check
+            :type line: str
+            :return: Tuple of (step message, step type). Step type is "comment_progress" for STEP comments, "comment_no_progress" for STEP_NO_PROGRESS comments, "any_progress" for STEP print statements, "any_no_progress" for STEP_NO_PROGRESS print statements or None if not a STEP line.
+            :rtype: Tuple[str | None, str | None]
             """
             step_patterns = PatternCollection.STEP.patterns
 
@@ -144,6 +165,15 @@ class Scheduler:
             """
             Replace a STEP comment with print statements, preserving indentation.
             If not in_desired, remove the STEP comment.
+
+            :param line: The line to process
+            :type line: str
+            :param indent: The indentation of the line
+            :type indent: str
+            :param in_desired: Whether the line is in the desired block
+            :type in_desired: bool
+            :return: The processed line
+            :rtype: str
             """
             step, step_type = get_step(line)
             if step is not None:
@@ -228,10 +258,21 @@ class Scheduler:
 
     def _spawn_and_stream(
         self, proc_cmd: List[str], flog: TextIO, task_id: int
-    ):
-        """Spawn a subprocess and stream its output to the logfile and progress tracker."""
+    ) -> bool:
+        """
+        Spawn a subprocess and stream its output to the logfile and progress tracker.
 
-        def reader(pipe: TextIO, is_stdout: bool):
+        :param proc_cmd: Command to run
+        :type proc_cmd: List[str]
+        :param flog: Log file to write output to
+        :type flog: TextIO
+        :param task_id: ID of the task for progress tracking
+        :type task_id: int
+        :return: True if the process exited successfully, False otherwise
+        :rtype: bool
+        """
+
+        def reader(pipe: TextIO):
             try:
                 for raw in iter(pipe.readline, ""):
                     if raw == "":
@@ -239,24 +280,26 @@ class Scheduler:
                     line = raw.rstrip("\n")
                     flog.write(line + "\n")
                     flog.flush()
-                    if is_stdout:
-                        m_progress = PatternCollection.STEP.patterns["output"](
-                            progress=True
-                        ).match(line)
-                        if m_progress:
-                            self.logger.update_task(
-                                task_id, m_progress.group(1).strip()
-                            )
 
-                        m_no_progress = PatternCollection.STEP.patterns[
-                            "output"
-                        ](progress=False).match(line)
-                        if m_no_progress:
-                            self.logger.update_task(
-                                task_id,
-                                m_no_progress.group(1).strip(),
-                                advance=False,
-                            )
+                    # Extract STEP statements with progress
+                    m_progress = PatternCollection.STEP.patterns["output"](
+                        progress=True
+                    ).match(line)
+                    if m_progress:
+                        self.logger.update_task(
+                            task_id, m_progress.group(1).strip()
+                        )
+
+                    # Extract STEP statements without progress
+                    m_no_progress = PatternCollection.STEP.patterns["output"](
+                        progress=False
+                    ).match(line)
+                    if m_no_progress:
+                        self.logger.update_task(
+                            task_id,
+                            m_no_progress.group(1).strip(),
+                            advance=False,
+                        )
             finally:
                 try:
                     pipe.close()
@@ -273,12 +316,13 @@ class Scheduler:
             bufsize=1,
         )
 
-        t_out = Thread(target=reader, args=(process.stdout, True), daemon=True)
-        t_err = Thread(
-            target=reader, args=(process.stderr, False), daemon=True
-        )
+        # Start reader threads
+        t_out = Thread(target=reader, args=(process.stdout,), daemon=True)
+        t_err = Thread(target=reader, args=(process.stderr,), daemon=True)
         t_out.start()
         t_err.start()
+
+        # Return when process ends
         exit_code = process.wait()
         t_out.join()
         t_err.join()
@@ -289,16 +333,28 @@ class Scheduler:
         task: ResolvedTask,
         task_id: int,
     ) -> bool:
-        """Run a single task, logging its output and tracking progress."""
+        """
+        Run a single task, logging its output and tracking progress.
+
+        :param task: The task to run
+        :type task: ResolvedTask
+        :param task_id: ID of the task for progress tracking
+        :type task_id: int
+        :return: True if the task ran successfully, False otherwise
+        :rtype: bool
+        """
         # Prepare script with modified step statements
         modified_script, n_steps = self._prepare_script(task.command)
         self.logger.debug(
             f"Prepared modified script for task '{task.name}' at {modified_script} with {n_steps} steps"
         )
 
-        def safe_unlink(path: Optional[Path]):
+        def safe_unlink(path: Optional[Path]) -> None:
             """
             Unlink files that may or may not have been unlinked yet
+
+            :param path: Path to the file to unlink
+            :type path: Optional[Path]
             """
             if path and isinstance(path, Path) and path.exists():
                 try:
@@ -371,8 +427,13 @@ class Scheduler:
             flog.close()
             return success
 
-    def _worker(self, task: ResolvedTask):
-        """Worker thread to run a task."""
+    def _worker(self, task: ResolvedTask) -> None:
+        """
+        Run a task in a worker thread.
+
+        :param task: The task to run
+        :type task: ResolvedTask
+        """
         task_id = self.logger.add_task(task.name, total=1)
         success = False
         try:
@@ -388,7 +449,7 @@ class Scheduler:
                 self.results[task] = success
                 self.queue.put(task)
 
-    def run(self):
+    def run(self) -> None:
         """Run all scheduled tasks, respecting dependencies."""
         running = {}
         while True:

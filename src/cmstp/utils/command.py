@@ -22,6 +22,14 @@ class CommandKind(Enum):
 
     @staticmethod
     def from_script(script: FilePath) -> "CommandKind":
+        """
+        Determine the command kind based on the script file extension.
+
+        :param script: Path to the script file
+        :type script: FilePath
+        :return: CommandKind corresponding to the script type
+        :rtype: CommandKind
+        """
         bash_suffixes = (".sh", ".bash")
         python_suffixes = (".py",)
 

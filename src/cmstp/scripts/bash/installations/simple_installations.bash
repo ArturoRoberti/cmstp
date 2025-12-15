@@ -1,6 +1,13 @@
 install_vscode() {
   : '
     Install VSCode from source
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Parse config args
   get_config_args "$@"
@@ -32,7 +39,14 @@ install_vscode() {
 
 install_fzf() {
   : '
-    Install fzf
+    Install fzf (fuzzy finder)
+
+    Args:
+      None
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Test if fzf is already installed
   if check_install_fzf; then
@@ -54,7 +68,14 @@ install_fzf() {
 
 install_loki_shell() {
   : '
-    Install loki-shell
+    Install loki-shell (fzf support over docker containers)
+
+    Args:
+      None
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
     '
   # Test if loki-shell is already installed
   if check_install_loki_shell; then

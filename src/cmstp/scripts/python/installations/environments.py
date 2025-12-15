@@ -16,8 +16,13 @@ from cmstp.scripts.python.helpers.processing import (
 from cmstp.utils.interface import bash_check
 
 
-def install_pip_environments(*args):
-    """Install packages into python environments using pip."""
+def install_pip_environments(*args: List[str]) -> None:
+    """
+    Install packages into python environments using pip.
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, _ = get_config_args(args)
     if config_file is None:
@@ -72,8 +77,13 @@ def install_pip_environments(*args):
 
 
 # TODO: Test, especially the sourcing of bashrc stuff
-def install_conda_environments(*args):
-    """Install packages into Conda environments (no custom env directory)."""
+def install_conda_environments(*args: List[str]) -> None:
+    """
+    Install packages into Conda environments (no custom env directory).
+
+    :param args: Configuration arguments
+    :type args: List[str]
+    """
     # Parse config args
     _, config_file, remaining_args = get_config_args(args)
     if config_file is None:

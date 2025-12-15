@@ -1,6 +1,13 @@
 uninstall_fzf() {
   : '
     Uninstall fzf
+
+    Args:
+      None
+    Outputs:
+      Log messages indicating the current progress and uninstallation outputs
+    Returns:
+      0 if successful (or already uninstalled), 1 otherwise
     '
   # Test if fzf is installed
   if ! check_install_fzf; then
@@ -21,6 +28,13 @@ uninstall_fzf() {
 uninstall_loki_shell() {
   : '
     Uninstall loki-shell
+
+    Args:
+      None
+    Outputs:
+      Log messages indicating the current progress and uninstallation outputs
+    Returns:
+      0 if successful (or already uninstalled), 1 otherwise
     '
   # Test if loki-shell is installed
   if ! check_install_loki_shell; then

@@ -1,9 +1,15 @@
 log_step() {
+  # TODO: Allow (via input) to send to stderr instead of stdout
   : '
     Log a step message with optional progress indicator.
+
     Args:
-    $1 - message (string)
-    $2 - progress (boolean, default: false)
+      - message:   Message to log.
+      - progress:  (Optional) Whether to show progress indicator (default: false).
+    Outputs:
+      Log messages indicating the current progress
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local message="$1"
   local progress="${2:-false}"
@@ -19,9 +25,14 @@ log_step() {
 marker_in_file() {
   : '
     Check if a CMSTP marker exists in a logfile.
+
     Args:
-      $1 - logfile (string)
-      $2 - marker (string)
+      - logfile:   Path to the logfile.
+      - marker:    Marker string to search for.
+    Outputs:
+      None
+    Returns:
+      0 if marker found, 1 otherwise
     '
   local logfile="$1"
   local marker="$2"
@@ -36,10 +47,15 @@ marker_in_file() {
 log_to_file() {
   : '
     Log a message or file content to a logfile, wrapped with start and end markers.
+
     Args:
-      $1 - message (string or filepath)
-      $2 - logfile (string)
-      $3 - marker (string)
+      - message:   Message string or path to file to log.
+      - logfile:   Path to the logfile.
+      - marker:    Marker string to wrap the logged content.
+    Outputs:
+      None
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local message="$1"
   local logfile="$2"
@@ -68,9 +84,14 @@ log_to_file() {
 remove_marker_from_file() {
   : '
     Remove all sections wrapped by a specific CMSTP marker from a logfile.
+
     Args:
-      $1 - logfile (string)
-      $2 - marker (string)
+      - logfile:   Path to the logfile.
+      - marker:    Marker string to remove.
+    Outputs:
+      None
+    Returns:
+      0 (unless an unexpected error occurs)
     '
   local logfile="$1"
   local marker="$2"
