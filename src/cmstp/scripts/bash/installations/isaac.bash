@@ -90,6 +90,7 @@ install_isaacsim() {
     log_step "Failed to unzip IsaacSim version ${isaacsim_version} to ${install_path}" true
     return 1
   fi
+  rm "$download_path"
 
   # Add environment variables to bashrc - TODO: Use util for this
   local bashrc_path="${HOME}/.bashrc"
@@ -258,6 +259,10 @@ install_isaaclab() {
     return 1
   fi
   mv "$unzipped"/* "$install_path"
+
+  # Cleanup
+  rm -rf "$unzipped"
+  rm "$download_path"
 
   # Create symlink to isaacsim
   ln -s "${isaacsim_path}" "${install_path}/_isaac_sim"

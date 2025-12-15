@@ -25,7 +25,6 @@ Look for TODOs in code. Otherwise, look at:
     - If null, then skip with warning via scheduler
     - Shell scripts will be OS-specific. Question is, should python scripts be so too or rather made cross-platform?
 - Make uninstallation scripts (current and future) such that if e.g. files are removed, than even if one fails (e.g. "cannot remove file: No such file or directory"), the rest is still run
-- Look through all tasks to see if more cleanup (of temporary files, etc.) is needed
 ## Features
 - Add mujoco stuff (mujoco, dmcontrol, sim applications)
 - Add file with list of debian file links (then get and dpkg (or step apt?) them)

@@ -77,6 +77,7 @@ install_conda() {
 
   # (STEP) Installing Conda
   bash $conda_script -b -p $conda_install_path
+  rm $conda_script
 
   # (STEP) Setting up Conda
   $conda_install_path/bin/conda init
