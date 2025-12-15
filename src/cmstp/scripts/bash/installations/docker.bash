@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-install_container_toolkit() {
+_install_container_toolkit() {
   : '
     Install NVIDIA Container Toolkit for use with Docker.
 
@@ -12,7 +12,7 @@ install_container_toolkit() {
       0 if successful (or already installed), 1 otherwise
     '
   # Check if NVIDIA Container Toolkit is already installed
-  if check_install_container_toolkit; then
+  if check_install_container_toolkit && [[ "$FORCE" == false ]]; then
     log_step "NVIDIA Container Toolkit is already installed - Skipping"
     return 0
   fi
@@ -47,7 +47,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   get_config_args "$@" || exit 1
 
   # Check if Docker is already installed
-  if check_install_docker; then
+  if check_install_docker && [[ "$FORCE" == false ]]; then
     log_step "Docker is already installed - Exiting"
     exit 0
   fi
@@ -84,7 +84,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 
   if _contains REMAINING_ARGS nvidia-container-toolkit; then
     # (STEP) Installing NVIDIA Container Toolkit
-    install_container_toolkit
+    _install_container_toolkit
   fi
 
   if _contains REMAINING_ARGS devcontainers-cli; then

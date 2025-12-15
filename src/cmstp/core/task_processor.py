@@ -557,7 +557,7 @@ class TaskProcessor:
             :return: Whether the argument is allowed
             :rtype: bool
             """
-            for allowed in allowed_args:
+            for allowed in [*allowed_args, "--force"]:
                 if allowed.endswith("*"):
                     if arg.startswith(allowed[:-1]):
                         return True

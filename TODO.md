@@ -3,8 +3,6 @@ Look for TODOs in code. Otherwise, look at:
 # !!! Major !!!
 - Update the README with proper documentation
 - Update and document pytests, and use them in CI (e.g. make sure there is no `✖ Failure` in output)
-- Have a `--force` (and/or `--reinstall`) argument to override checks (i.e. run even if already installed/configured)
-- Issue assignee workflow seems to trigger twice on each issue creation, if no assignee is given
 
 # Minor
 - Add mujoco stuff (mujoco, dmcontrol, sim applications)
@@ -33,3 +31,5 @@ Look for TODOs in code. Otherwise, look at:
 - Restructure `default.yaml` 'file' field, to specify one for each OS type (ubuntu, macos, windows)
     - If null, then skip with warning via scheduler
     - Shell scripts will be OS-specific. Question is, should python scripts be so too or rather made cross-platform?
+- Make uninstallation scripts (current and future) such that if e.g. files are removed, than even if one fails (e.g. "cannot remove file: No such file or directory"), the rest is still run
+- Look through all tasks to see if more cleanup (of temporary files, etc.) is needed

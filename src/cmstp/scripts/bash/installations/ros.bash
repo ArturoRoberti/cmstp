@@ -133,7 +133,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   get_config_args "$@"
 
   # Check if ROS is already installed
-  if check_install_ros; then
+  if check_install_ros && [[ "$FORCE" == false ]]; then
     log_step "ROS is already installed - Exiting"
     return 0
   fi

@@ -214,7 +214,7 @@ _add_graphics_drivers_ppa() {
     sudo add-apt-repository -y ppa:graphics-drivers/ppa
   fi
 
-  if [[ "$prime_select" == "true" ]]; then
+  if [[ "$prime_select" == true ]]; then
     # TODO: May not work - in that case remove /etc/apt/.../cuda* files instead (pin and list)
     # Prioritize graphics-drivers PPA for NVIDIA driver packages (over CUDA repo)
     sudo tee /etc/apt/preferences.d/cmstp-nvidia-driver-pin >/dev/null <<'EOF'
@@ -246,7 +246,7 @@ _install_nvidia_driver() {
 
   #Install Requirement(s)
   apt_install mokutil
-  if [[ "$prime_select" == "true" ]]; then
+  if [[ "$prime_select" == true ]]; then
     apt_install nvidia-prime
   fi
 
@@ -263,7 +263,7 @@ _install_nvidia_driver() {
   apt_install "$driver_version"
 
   # Prioritizing NVIDIA GPU
-  if [[ "$prime_select" == "true" ]]; then
+  if [[ "$prime_select" == true ]]; then
     sudo prime-select nvidia
   fi
 }
@@ -286,7 +286,7 @@ install_nvidia_driver() {
   get_config_args "$@"
 
   # Check if NVIDIA Driver is already installed
-  if check_install_nvidia_driver; then
+  if check_install_nvidia_driver && [[ "$FORCE" == false ]]; then
     # TODO: Check if version matches the recommended/requested one?
     # TODO: Check if prime-select is set (if requested)?
     log_step "NVIDIA Driver is already installed - Exiting"
@@ -421,7 +421,7 @@ install_cuda() {
   get_config_args "$@"
 
   # Check if CUDA is already installed
-  if check_install_cuda; then
+  if check_install_cuda && [[ "$FORCE" == false ]]; then
     if ! check_install_nvidia_driver; then
       log_step "CUDA is already installed, but a (compatible) NVIDIA Driver is missing - Installing again with recommended driver"
     else

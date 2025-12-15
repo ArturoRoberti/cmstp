@@ -14,7 +14,7 @@ log_step() {
   local message="$1"
   local progress="${2:-false}"
 
-  if [ "$progress" == "true" ]; then
+  if [ "$progress" == true ]; then
     echo -e "\n__STEP__: $message"
   else
     echo -e "\n__STEP_NO_PROGRESS__: $message"

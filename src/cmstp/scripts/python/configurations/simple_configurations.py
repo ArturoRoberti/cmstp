@@ -26,7 +26,7 @@ def configure_pinned_apps(*args: List[str]) -> None:
     :type args: List[str]
     """
     # Parse config args
-    _, config_file, _ = get_config_args(args)
+    _, config_file, _, _ = get_config_args(args)
     if config_file is None:
         # (STEP_NO_PROGRESS) Skipping configuration of pinned apps, as no task config file is provided
         return
@@ -50,7 +50,7 @@ def configure_filestructure(*args: List[str]) -> None:
     :type args: List[str]
     """
     # Parse config args
-    _, config_file, remaining_args = get_config_args(args)
+    _, config_file, force, remaining_args = get_config_args(args)
     if config_file is None:
         # (STEP_NO_PROGRESS) Skipping configuration of pinned apps, as no task config file is provided
         return
@@ -110,7 +110,7 @@ def configure_filestructure(*args: List[str]) -> None:
                 # Get content based on type
                 if string_type == "git":
                     # (STEP_NO_PROGRESS) Cloning git repository {content} into {dest_path}...
-                    # TODO: Optimize cloning for if the repo exists multiple times in the yaml
+                    # TODO: Optimize cloning for if the repo exists multiple times in the yaml. Maybe in general have tmpdir with all git repos and some caching?
                     cloned_path = clone_git_files(
                         content, dest_path, overwrite
                     )
@@ -167,7 +167,7 @@ def configure_filestructure(*args: List[str]) -> None:
         recursive_create_structure(
             Path.home(),
             config_data["HOME"],
-            "--overwrite" in remaining_args,
+            force,
             False,
         )
     if config_data.get("ROOT"):
@@ -190,7 +190,7 @@ def configure_vscode_keybindings(*args: List[str]) -> None:
     :type args: List[str]
     """
     # Parse config args
-    _, config_file, _ = get_config_args(args)
+    _, config_file, _, _ = get_config_args(args)
     if config_file is None:
         # (STEP_NO_PROGRESS) Skipping configuration of VSCode keybindings, as no task config file is provided
         return

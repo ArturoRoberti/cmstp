@@ -12,7 +12,7 @@ configure_bashrc() {
       0 if configured, 1 otherwise
     '
   # Check if already configured
-  if check_configure_bashrc; then
+  if check_configure_bashrc && [[ "$FORCE" == false ]]; then
     log_step "~/.bashrc is already configured - Exiting"
     return 0
   fi

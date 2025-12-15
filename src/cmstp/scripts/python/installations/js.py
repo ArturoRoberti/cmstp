@@ -29,7 +29,7 @@ def install_js_repositories(*args: List[str]) -> None:
     :type args: List[str]
     """
     # Parse config args
-    _, config_file, remaining_args = get_config_args(args)
+    _, config_file, force, remaining_args = get_config_args(args)
     if config_file is None:
         Logger.step(
             "Skipping pulling of docker images, as no task config file is provided"
@@ -133,8 +133,13 @@ def install_js_repositories(*args: List[str]) -> None:
             # Move to /opt/npm (overwrite if exists) - TODO: Either generalize or (if only necessary for npm) change to npm only
             target = npm_pkg_dir / pkg_name
             if target.exists():
-                # TODO: Only remove if --force is passed
-                subprocess.run(["sudo", "rm", "-rf", str(target)])
+                if force:
+                    subprocess.run(["sudo", "rm", "-rf", str(target)])
+                else:
+                    Logger.step(
+                        f"Package {pkg_name} already exists at {target}, skipping."
+                    )
+                    continue
             subprocess.run(
                 ["sudo", "mv", str(repo_path), str(target)], check=True
             )

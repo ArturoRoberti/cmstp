@@ -10,7 +10,7 @@ uninstall_fzf() {
       0 if successful (or already uninstalled), 1 otherwise
     '
   # Test if fzf is installed
-  if ! check_install_fzf; then
+  if ! check_install_fzf && [[ "$FORCE" == false ]]; then
     log_step "fzf is not installed - Exiting"
     return 0
   fi
@@ -37,7 +37,7 @@ uninstall_loki_shell() {
       0 if successful (or already uninstalled), 1 otherwise
     '
   # Test if loki-shell is installed
-  if ! check_install_loki_shell; then
+  if ! check_install_loki_shell && [[ "$FORCE" == false ]]; then
     log_step "loki-shell is not installed - Exiting"
     return 0
   fi

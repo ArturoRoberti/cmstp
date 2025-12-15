@@ -24,7 +24,7 @@ def install_pip_environments(*args: List[str]) -> None:
     :type args: List[str]
     """
     # Parse config args
-    _, config_file, _ = get_config_args(args)
+    _, config_file, _, _ = get_config_args(args)
     if config_file is None:
         Logger.step(
             "Skipping installation of pip packages, as no task config file is provided"
@@ -57,7 +57,9 @@ def install_pip_environments(*args: List[str]) -> None:
             continue
 
         # Create virtual environment
-        venv.create(env_dir / env_name, with_pip=True)
+        venv.create(
+            env_dir / env_name, with_pip=True
+        )  # TODO: Is any handling of existing envs needed?
         pip_executable = env_dir / env_name / "bin" / "pip"
 
         # Install packages
@@ -85,7 +87,7 @@ def install_conda_environments(*args: List[str]) -> None:
     :type args: List[str]
     """
     # Parse config args
-    _, config_file, remaining_args = get_config_args(args)
+    _, config_file, force, remaining_args = get_config_args(args)
     if config_file is None:
         Logger.step(
             "Skipping installation of conda environments, as no task config file is provided"
@@ -200,7 +202,11 @@ def install_conda_environments(*args: List[str]) -> None:
             capture_output=True,
             text=True,
         )
-        if result.returncode == 0:
+        if (
+            result.returncode == 0
+            and "--update" not in remaining_args
+            and not force
+        ):
             Logger.step(
                 f"Environment '{env_name}' already exists - Skipping creation"
             )
@@ -210,11 +216,22 @@ def install_conda_environments(*args: List[str]) -> None:
         if "--update" in remaining_args:
             conda_cmd = ["update" if x == "create" else x for x in conda_cmd]
         else:
-            # TODO: Allow --force as well (in which case the existing env is deleted (via mm env remove -n <env_name>) and recreated)
-            Logger.step(
-                f"Environment '{env_name}' already exists - Skipping creation"
-            )
-            continue
+            if force:
+                result = subprocess.run(
+                    [conda_exe[env_type], "env", "remove", "-n", env_name],
+                    capture_output=True,
+                    text=True,
+                )
+                if not result.returncode == 0:
+                    Logger.step(
+                        f"Failed to remove existing environment '{env_name}' - Skipping creation"
+                    )
+                    continue
+            else:
+                Logger.step(
+                    f"Environment '{env_name}' already exists - Skipping creation"
+                )
+                continue
 
         # (STEP_NO_PROGRESS) Creating environment '{env_name}' with {env_type}
         result = subprocess.run(conda_cmd)

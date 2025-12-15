@@ -15,7 +15,7 @@ install_conda() {
   # Check if Conda is already installed
   # TODO: Maybe allow switching between miniconda/anaconda; i.e. specify which one to check as well
   #       Or maybe just allow "--reinstall" flag to force reinstallation (in general, not just here)
-  if check_install_conda; then
+  if check_install_conda && [[ "$FORCE" == false ]]; then
     log_step "Conda is already installed - Exiting"
     return 0
   fi
@@ -91,36 +91,6 @@ install_conda() {
   check_install_conda
 }
 
-install_mamba() {
-  : '
-    Install (Micro)Mamba - Micromamba prioritized over Mamba (if both specified)
-
-    Args:
-      - Configuration Args
-    Outputs:
-      Log messages indicating the current progress and installation outputs
-    Returns:
-      0 if successful (or already installed), 1 otherwise
-    '
-  # TODO: ToS acceptance for mamba required?
-
-  # Parse config args
-  get_config_args "$@"
-
-  # TODO: Give warning that either mamba type may break the other one (if installed)
-  #       Maybe uninstall the other one? Maybe do this via "--force" or "--reinstall" flag or similar?
-
-  # (STEP) Installing (Micro)Mamba
-  if _contains REMAINING_ARGS "micromamba"; then
-    _install_micromamba "$@"
-  elif _contains REMAINING_ARGS "mamba"; then
-    _install_mamba "$@"
-  else
-    log_step "No (micro)mamba installation type specified - Exiting"
-    return 1
-  fi
-}
-
 # NOTE: To uninstall run "micromamba shell deinit" and then remove "~/.micromamba" and "~/.local/bin/micromamba" folders
 _install_micromamba() {
   : '
@@ -134,7 +104,7 @@ _install_micromamba() {
       0 if successful (or already installed), 1 otherwise
     '
   # Check if micromamba is already installed
-  if check_install_mamba; then
+  if check_install_mamba && [[ "$FORCE" == false ]]; then
     log_step "Micromamba is already installed - Exiting"
     return 0
   fi
@@ -162,7 +132,7 @@ _install_mamba() {
       0 if successful (or already installed), 1 otherwise
     '
   # Check if mamba is already installed
-  if check_install_mamba; then
+  if check_install_mamba && [[ "$FORCE" == false ]]; then
     log_step "Mamba is already installed - Exiting"
     return 0
   fi
@@ -179,4 +149,34 @@ _install_mamba() {
 
   # Verify installation
   check_install_mamba
+}
+
+install_mamba() {
+  : '
+    Install (Micro)Mamba - Micromamba prioritized over Mamba (if both specified)
+
+    Args:
+      - Configuration Args
+    Outputs:
+      Log messages indicating the current progress and installation outputs
+    Returns:
+      0 if successful (or already installed), 1 otherwise
+    '
+  # TODO: ToS acceptance for mamba required?
+
+  # Parse config args
+  get_config_args "$@"
+
+  # TODO: Give warning that either mamba type may break the other one (if installed)
+  #       Maybe uninstall the other one? Do this via "--force" flag resp FORCE variable or similar?
+
+  # (STEP) Installing (Micro)Mamba
+  if _contains REMAINING_ARGS "micromamba"; then
+    _install_micromamba "$@"
+  elif _contains REMAINING_ARGS "mamba"; then
+    _install_mamba "$@"
+  else
+    log_step "No (micro)mamba installation type specified - Exiting"
+    return 1
+  fi
 }

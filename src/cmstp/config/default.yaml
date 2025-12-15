@@ -17,7 +17,7 @@
 # - (dict) 'args' specifies arguments for the task                                                              #
 #     - (list|null) 'allowed' specifies a list of allowed args                                                  #
 #       If null, any arg is allowed (equivalent to [*])                                                         #
-#       If empty ([]), then no args are allowed                                                                 #
+#       If empty ([]), then no args are allowed, except for '--force', which is always allowed                  #
 #     - (list) 'default' specifies a list of default args                                                       #
 #    After processing, the final args are then passed to the script/function as:                                #
 #     -  (bash)  Normal input (accessible via "$1", "$2", ..., "$@")                                            #
@@ -242,7 +242,7 @@ configure-filestructure:
   config_file: configurations/configure_filestructure.yaml
   privileged: true
   args:
-    allowed: [--root, --overwrite]  # TODO: Repace "--overwrite" with general "--force" option
+    allowed: [--root]
     default: []
 configure-pinned-apps:
   <<: *defaults
