@@ -1,14 +1,54 @@
+import getpass
+import os
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import List, Optional, Tuple
 
 from cmstp.core.logger import Logger
 from cmstp.utils.common import generate_random_path, resolve_package_path
 from cmstp.utils.git_repos import clone_git_files, is_git_repo
 from cmstp.utils.interface import promt_bool
+from cmstp.utils.logger import TaskTerminationType
 from cmstp.utils.system_info import get_system_info
 from cmstp.utils.yaml import load_yaml
+
+
+def get_sudo_askpass() -> Path:
+    # Reset sudo permissions
+    subprocess.run(["sudo", "-k"])
+
+    # Create temporary askpass file
+    with NamedTemporaryFile(mode="w", delete=False) as askpass_file:
+        attempts = 3
+        while attempts > 0:
+            response = getpass.getpass(
+                "[sudo] password for {}: ".format(getpass.getuser())
+            )
+            test_response = subprocess.run(
+                ["sudo", "-S", "-v"],
+                input=response + "\n",
+                text=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if test_response.returncode == 0:
+                break
+            else:
+                if attempts != 1:
+                    print("Sorry, try again.")
+                attempts -= 1
+        else:
+            print("sudo: 3 incorrect password attempts")
+            sys.exit(1)
+
+        askpass_file.write("#!/bin/sh\n" f"echo '{response}'\n")
+        askpass_path = askpass_file.name
+
+    os.chmod(askpass_path, 0o700)
+    return askpass_path
 
 
 @dataclass
@@ -189,6 +229,9 @@ class MainSetupProcessor:
             text=True,
         )
         self.logger.update_task(requirements_id, "Updated apt packages")
+        self.logger.debug(
+            f"Preparation apt update output:\n{result_update.stdout}\n{result_update.stderr}"
+        )
 
         result_upgrade = subprocess.run(
             ["sudo", "apt-get", "-y", "upgrade"],
@@ -196,11 +239,19 @@ class MainSetupProcessor:
             text=True,
         )
         self.logger.update_task(requirements_id, "Upgraded apt packages")
+        self.logger.debug(
+            f"Preparation apt upgrade output:\n{result_upgrade.stdout}\n{result_upgrade.stderr}"
+        )
 
         success = (
             result_update.returncode == 0 and result_upgrade.returncode == 0
         )
-        self.logger.finish_task(requirements_id, success=success)
+        self.logger.finish_task(
+            requirements_id,
+            success=TaskTerminationType.SUCCESS
+            if success
+            else TaskTerminationType.FAILURE,
+        )
 
         if not success:
             error_msg = "Failed to update/upgrade apt packages"

@@ -43,7 +43,7 @@ uninstall_loki_shell() {
   fi
 
   docker rm -f loki-shell
-  sudo rm -rf ~/.loki-shell
+  rm -rf ~/.loki-shell
   sed -i "/#* BEGIN LOKI-SHELL #*/,/#* END LOKI-SHELL #*/d" "${HOME}/.bashrc"
 
   # Verify installation

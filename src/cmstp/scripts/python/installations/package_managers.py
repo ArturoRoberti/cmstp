@@ -43,7 +43,7 @@ def install_apt_packages(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping installation of apt packages, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -63,7 +63,7 @@ def install_snap_packages(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping installation of snap packages, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -86,7 +86,7 @@ def install_flatpak_packages(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping installation of flatpak packages, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -133,7 +133,7 @@ def install_npm_packages(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping installation of npm packages, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -156,7 +156,7 @@ def install_pipx_packages(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping installation of pipx packages, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -180,7 +180,7 @@ def install_vscode_extensions(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping installation of VSCode extensions, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -209,7 +209,7 @@ def install_docker_images(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping pulling of docker images, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -241,7 +241,7 @@ def install_docker_images(*args: List[str]) -> None:
     if not docker_images:
         Logger.step(
             "No docker images found in the provided config file. Skipping pulling of docker images.",
-            stderr=True,
+            warning=True,
         )
         return
 

@@ -11,9 +11,7 @@ from cmstp.utils.command import Command, CommandKind
 from cmstp.utils.common import PACKAGE_CONFIG_PATH
 from cmstp.utils.patterns import PatternCollection
 from cmstp.utils.tasks import (
-    TASK_ARGS_DEFAULT,
-    TASK_PROPERTIES_CUSTOM,
-    TASK_PROPERTIES_DEFAULT,
+    DEFAULT_CUSTOM_CONFIG,
     ResolvedTask,
     TaskDictCollection,
     get_invalid_tasks_from_task_dict_collection,
@@ -74,8 +72,11 @@ class TaskProcessor:
                 )
                 tasks[task_name]["enabled"] = False
 
-        # Fill in missing optional fields with defaults (including for default config)
-        tasks = self.fill_missing_fields(tasks)
+        # Fill all missing custom fields in other tasks
+        tasks = {
+            task_name: overlay_dicts([DEFAULT_CUSTOM_CONFIG, task])
+            for task_name, task in tasks.items()
+        }
 
         # Resolve dependencies (disable tasks that depend on disabled ones)
         tasks = self.check_dependencies(tasks)
@@ -143,123 +144,6 @@ class TaskProcessor:
 
         return tasks
 
-    def fill_missing_fields(
-        self,
-        tasks: TaskDictCollection,
-        include_default: bool = True,
-        include_custom: bool = True,
-    ) -> TaskDictCollection:
-        """
-        Fill in missing optional fields with defaults.
-
-        :param tasks: Tasks to process
-        :type tasks: TaskDictCollection
-        :param enable_all: Whether to enable all tasks by default
-        :type enable_all: bool
-        :param include_default: Whether to include default tasks
-        :type include_default: bool
-        :param include_custom: Whether to include custom tasks
-        :type include_custom: bool
-        :return: Processed tasks with missing fields filled
-        :rtype: TaskDictCollection
-        """
-        expected_properties = dict()
-        expected_args = dict()
-        if include_default:
-            expected_properties |= TASK_PROPERTIES_DEFAULT
-            expected_args |= TASK_ARGS_DEFAULT
-        if include_custom:
-            expected_properties |= TASK_PROPERTIES_CUSTOM
-            expected_args = list()
-
-        filled_tasks = deepcopy(tasks)
-        for task_name, task in filled_tasks.items():
-            task_disabled = False
-            # Task properties
-            for task_field, default in expected_properties.items():
-                # NOTE: bool() = False
-                called_default = (
-                    default[0]() if callable(default[0]) else default[0]
-                )
-                if task_field not in task:
-                    if task_field == "enabled":
-                        if not task_disabled:
-                            task[task_field] = (
-                                self.enable_all
-                                if self.enable_all is not None
-                                else called_default
-                            )
-                        if task_name.startswith("uninstall"):
-                            # Uninstall tasks are disabled by default for now - TODO: Change as soon as separate "uninstall" entrypoint is added
-                            task[task_field] = False
-                    elif task_field == "config_file":
-                        task[task_field] = "default"
-                    else:
-                        task[task_field] = called_default
-                else:
-                    if not (
-                        (None in default and task[task_field] is None)
-                        or any(
-                            isinstance(task[task_field], t)
-                            for t in default
-                            if t is not None
-                        )
-                    ):
-                        self.logger.warning(
-                            f"Disabling task '{task_name}' because task property '{task_field}' has incorrect "
-                            f"type (expected: {default}, got: {type(task[task_field]).__name__})"
-                        )
-                        task[task_field] = called_default
-                        task["enabled"] = False
-                        task_disabled = True
-
-            # Task args
-            if "args" not in task:
-                task["args"] = type(expected_args)()
-            if isinstance(expected_args, list):
-                if not isinstance(task["args"], list) or not all(
-                    isinstance(arg, str) for arg in task["args"]
-                ):
-                    self.logger.warning(
-                        f"Disabling task '{task_name}' because 'args' field is not a list of strings"
-                    )
-                    task["enabled"] = False
-                    task["args"] = []
-            elif isinstance(expected_args, dict):
-                if not isinstance(task["args"], dict):
-                    self.logger.warning(
-                        f"Disabling task '{task_name}' because 'args' field is not a dict"
-                    )
-                    task["enabled"] = False
-                    task["args"] = {}
-                for arg_field, default in expected_args.items():
-                    # NOTE: bool() = False
-                    called_default = (
-                        default[0]() if callable(default[0]) else default[0]
-                    )
-                    if arg_field not in task["args"]:
-                        task["args"][arg_field] = called_default
-                    else:
-                        if not (
-                            (
-                                None in default
-                                and task["args"][arg_field] is None
-                            )
-                            or any(
-                                isinstance(task["args"][arg_field], t)
-                                for t in default
-                                if t is not None
-                            )
-                        ):
-                            self.logger.warning(
-                                f"Disabling task '{task_name}' because task arg '{arg_field}' has incorrect "
-                                f"type (expected: {default}, got: {type(task['args'][arg_field]).__name__})"
-                            )
-                            task["args"][arg_field] = called_default
-                            task["enabled"] = False
-
-        return filled_tasks
-
     def check_default_config(self) -> TaskDictCollection:
         """
         Check that the default config file is valid.
@@ -312,12 +196,7 @@ class TaskProcessor:
                 [cyan]Required structure for tasks in the default config[/cyan]:
             """
             )
-            fatal(
-                fatal_msg
-                + print_expected_task_fields(
-                    TASK_PROPERTIES_DEFAULT, TASK_ARGS_DEFAULT
-                )
-            )
+            fatal(fatal_msg + print_expected_task_fields(default=True))
 
         # Check everything else
         existing_scripts = set()
@@ -457,13 +336,26 @@ class TaskProcessor:
         check_option("enable_dependencies")
 
         # Add defaults for missing optional fields. Used to check structure of custom config tasks
-        checked_custom_config = self.fill_missing_fields(
-            config, include_default=False
-        )
+        default_dict = deepcopy(DEFAULT_CUSTOM_CONFIG)
+        default_dict[
+            "config_file"
+        ] = "default"  # Allow default config file to be kept
+        default_dict["args"] = "default"  # Allow default args to be kept
+        filled_tasks = deepcopy(config)
+        for task_name, task in config.items():
+            # Quick check
+            if not isinstance(task, dict):
+                self.logger.warning(
+                    f"Disabling task '{task_name}' because it is not "
+                    f"defined by a dict, but a {type(task).__name__}"
+                )
+                filled_tasks[task_name] = default_dict
+            else:
+                filled_tasks[task_name] = overlay_dicts([default_dict, task])
 
         # Check structure (incl. types)
         invalid_tasks = get_invalid_tasks_from_task_dict_collection(
-            checked_custom_config, include_default=False, include_custom=True
+            filled_tasks, include_default=False, include_custom=True
         )
         if invalid_tasks:
             warning_msg = textwrap.dedent(
@@ -472,18 +364,15 @@ class TaskProcessor:
                 [cyan]Required structure for tasks in the custom config[/cyan] (all fields optional):
             """
             )
-            warning(
-                warning_msg
-                + print_expected_task_fields(TASK_PROPERTIES_CUSTOM)
-            )
-            for task in invalid_tasks:
-                checked_custom_config[task]["enabled"] = False
+            warning(warning_msg + print_expected_task_fields(default=False))
+            for task_name in invalid_tasks:
+                filled_tasks[task_name] = default_dict
 
         # Check args
-        for task_name, task in checked_custom_config.items():
+        for task_name, task in filled_tasks.items():
             # Check custom args are allowed
             wrong_args, is_allowed = self.check_allowed(
-                self._allowed_args[task_name], task["args"]
+                self._allowed_args[task_name], task["args"], True
             )
             if not is_allowed:
                 warning(
@@ -494,7 +383,7 @@ class TaskProcessor:
                 task["enabled"] = False
 
         self.logger.debug("Config is valid")
-        return checked_custom_config
+        return filled_tasks
 
     def process_custom_tasks(self) -> TaskDictCollection:
         """
@@ -515,7 +404,7 @@ class TaskProcessor:
 
                 # Check custom args
                 wrong_args, is_allowed = self.check_allowed(
-                    self._allowed_args.get(task_name, []), task_args
+                    self._allowed_args.get(task_name, []), task_args, True
                 )
                 if not is_allowed:
                     self.logger.warning(
@@ -532,7 +421,9 @@ class TaskProcessor:
 
     @staticmethod
     def check_allowed(
-        allowed_args: Optional[List[str]], args: Union[str, List[str]]
+        allowed_args: Optional[List[str]],
+        args: Union[str, List[str]],
+        allow_default: bool = False,
     ) -> Tuple[List[str], bool]:
         """
         Check if an argument is in the allowed list.
@@ -542,11 +433,13 @@ class TaskProcessor:
         :type allowed_args: Optional[List[str]]
         :param args: Argument or list of arguments to check
         :type args: Union[str, List[str]]
+        :param allow_default: Whether to allow 'default' as a valid argument
+        :type allow_default: bool
         :return: Tuple of (list of wrong arguments, is valid)
         :rtype: Tuple[List[str], bool]
         """
 
-        def _check_single_allowed(allowed_args: List[str], arg: str) -> bool:
+        def _check_single_allowed(arg: str) -> bool:
             """
             Check if a single argument is allowed, supporting wildcard '*'
 
@@ -557,7 +450,11 @@ class TaskProcessor:
             :return: Whether the argument is allowed
             :rtype: bool
             """
-            for allowed in [*allowed_args, "--force"]:
+            extra_args = ["--force"]
+            if allow_default:
+                extra_args.append("default")
+
+            for allowed in [*allowed_args, *extra_args]:
                 if allowed.endswith("*"):
                     if arg.startswith(allowed[:-1]):
                         return True
@@ -568,14 +465,12 @@ class TaskProcessor:
         if allowed_args is None:
             return [], True
         if isinstance(args, str):
-            is_allowed = _check_single_allowed(allowed_args, args)
+            is_allowed = _check_single_allowed(args)
             wrong_args = [] if is_allowed else [args]
             return wrong_args, is_allowed
         else:  # List[str]
             wrong_args = [
-                arg
-                for arg in args
-                if not _check_single_allowed(allowed_args, arg)
+                arg for arg in args if not _check_single_allowed(arg)
             ]
             return wrong_args, not wrong_args
 

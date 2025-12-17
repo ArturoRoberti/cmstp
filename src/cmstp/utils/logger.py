@@ -47,7 +47,7 @@ class LoggerEnumBase(Enum):
         return self.value.bright
 
 
-class LoggerTaskTerminationType(LoggerEnumBase):
+class TaskTerminationType(LoggerEnumBase):
     """
     Types of task termination statuses.
     """
@@ -75,7 +75,7 @@ class LoggerSeverity(LoggerEnumBase):
     # fmt: on
 
 
-LoggerEnum = Union[LoggerSeverity, LoggerTaskTerminationType]
+LoggerEnum = Union[LoggerSeverity, TaskTerminationType]
 
 
 # TODO: Maybe organize better / replace?

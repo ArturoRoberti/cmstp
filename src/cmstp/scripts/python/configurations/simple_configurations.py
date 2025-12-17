@@ -30,7 +30,7 @@ def configure_pinned_apps(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping configuration of pinned apps, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -57,7 +57,7 @@ def configure_filestructure(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping configuration of file structure, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -71,7 +71,7 @@ def configure_filestructure(*args: List[str]) -> None:
             ):
                 Logger.step(
                     f"Path {dest_path} already exists. Skipping creation...",
-                    stderr=True,
+                    warning=True,
                 )
                 continue
 
@@ -109,7 +109,7 @@ def configure_filestructure(*args: List[str]) -> None:
                 else:
                     Logger.step(
                         f"Unsupported string content '{content}' for destination path '{dest_path}'. Skipping...",
-                        stderr=True,
+                        warning=True,
                     )
                     continue
 
@@ -119,7 +119,7 @@ def configure_filestructure(*args: List[str]) -> None:
                 ) and not content.exists():
                     Logger.step(
                         f"Source {string_type} {content} does not exist. Skipping...",
-                        stderr=True,
+                        warning=True,
                     )
                     continue
 
@@ -135,7 +135,7 @@ def configure_filestructure(*args: List[str]) -> None:
                     if cloned_path is None:
                         Logger.step(
                             f"Failed to clone git repository {content}. Skipping...",
-                            stderr=True,
+                            warning=True,
                         )
                         continue
                 elif string_type == "url":
@@ -150,7 +150,7 @@ def configure_filestructure(*args: List[str]) -> None:
                     else:
                         Logger.step(
                             f"Failed to download file from {content}. HTTP status code: {response.status_code}",
-                            stderr=True,
+                            warning=True,
                         )
                 elif string_type == "path":
                     Logger.step(
@@ -168,7 +168,7 @@ def configure_filestructure(*args: List[str]) -> None:
                 else:
                     Logger.step(
                         f"Unknown string type '{string_type}' for {dest_path} (SHOULD NOT HAPPEN). Skipping...",
-                        stderr=True,
+                        warning=True,
                     )
                     continue
             elif isinstance(content, dict):
@@ -178,7 +178,7 @@ def configure_filestructure(*args: List[str]) -> None:
             else:
                 Logger.step(
                     f"Unsupported entry type '{type(content)}' for {content}. Skipping...",
-                    stderr=True,
+                    warning=True,
                 )
 
             # Revert to user permissions if under HOME directory
@@ -226,7 +226,7 @@ def configure_vscode_keybindings(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping configuration of VSCode keybindings, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 

@@ -33,7 +33,7 @@ def install_js_repositories(*args: List[str]) -> None:
     if config_file is None:
         Logger.step(
             "Skipping pulling of docker images, as no task config file is provided",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -51,7 +51,7 @@ def install_js_repositories(*args: List[str]) -> None:
     if not repos:
         Logger.step(
             "Skipping installation of JS repositories, as no repositories are specified",
-            stderr=True,
+            warning=True,
         )
         return
 
@@ -66,7 +66,7 @@ def install_js_repositories(*args: List[str]) -> None:
             if not repo_path:
                 Logger.step(
                     f"Failed to clone repository {repo}, skipping.",
-                    stderr=True,
+                    warning=True,
                 )
                 continue
 
@@ -74,7 +74,7 @@ def install_js_repositories(*args: List[str]) -> None:
             pkg_json = repo_path / "package.json"
             if not pkg_json.exists():
                 Logger.step(
-                    f"No package.json found in {repo}, skipping.", stderr=True
+                    f"No package.json found in {repo}, skipping.", warning=True
                 )
                 continue
             with pkg_json.open() as f:
@@ -107,7 +107,7 @@ def install_js_repositories(*args: List[str]) -> None:
                 if not (min_version <= node_version <= max_version):
                     Logger.step(
                         f"Skipping installation of {pkg_name}, as Node.js version {node_version} does not satisfy required range {node_range}.",
-                        stderr=True,
+                        warning=True,
                     )
                     continue
 
@@ -125,7 +125,6 @@ def install_js_repositories(*args: List[str]) -> None:
                 package_manager = "npm install"
                 if not npm_pkg_dir.exists():
                     subprocess.run(["sudo", "mkdir", "-p", str(npm_pkg_dir)])
-
             # Install package
             try:
                 subprocess.run(
@@ -137,7 +136,7 @@ def install_js_repositories(*args: List[str]) -> None:
             except subprocess.CalledProcessError:
                 Logger.step(
                     f"Failed to install package {pkg_name}, skipping.",
-                    stderr=True,
+                    warning=True,
                 )
                 continue
 
@@ -149,7 +148,7 @@ def install_js_repositories(*args: List[str]) -> None:
                 else:
                     Logger.step(
                         f"Package {pkg_name} already exists at {target}, skipping.",
-                        stderr=True,
+                        warning=True,
                     )
                     continue
             subprocess.run(

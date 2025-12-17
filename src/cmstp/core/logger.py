@@ -18,8 +18,8 @@ from rich.progress import (
 from cmstp.utils.logger import (
     LoggerEnum,
     LoggerSeverity,
-    LoggerTaskTerminationType,
     TaskInfos,
+    TaskTerminationType,
 )
 
 
@@ -256,7 +256,7 @@ class Logger:
     def finish_task(
         self,
         task_id: int,
-        success: LoggerTaskTerminationType,
+        success: TaskTerminationType,
     ) -> None:
         """
         Mark a task as finished, updating its progress and description.
@@ -264,7 +264,7 @@ class Logger:
         :param task_id: ID of the task
         :type task_id: int
         :param success: Task termination type indicating how the task completed
-        :type success: LoggerTaskTerminationType
+        :type success: TaskTerminationType
         """
         with self._tasks_lock:
             if task_id not in self.task_infos:
@@ -280,14 +280,14 @@ class Logger:
             logfile = task_info["logfile"]
             task_name = task_info["name"]
 
-        if success == LoggerTaskTerminationType.SUCCESS:
+        if success == TaskTerminationType.SUCCESS:
             symbol = "✔"
-        elif success == LoggerTaskTerminationType.PARTIAL:
+        elif success == TaskTerminationType.PARTIAL:
             symbol = "⚠"
             # self._failed_tasks[task_name] = logfile  # TODO: Keep?
-        elif success == LoggerTaskTerminationType.SKIPPED:
+        elif success == TaskTerminationType.SKIPPED:
             symbol = "⊘"
-        elif success == LoggerTaskTerminationType.FAILURE:
+        elif success == TaskTerminationType.FAILURE:
             symbol = "✖"
             self._failed_tasks[task_name] = logfile
         else:
@@ -331,19 +331,18 @@ class Logger:
         richprint(f"{prefix}{logstart} {message}")
 
     @staticmethod
-    def step(message: str, stderr: bool = False) -> None:
+    def step(message: str, warning: bool = False) -> None:
         """
         Log a step message indicating progress. Only to be used from within tasks.
 
-        :param message: The message
+        :param message: Message to log
         :type message: str
-        :param stderr: Whether to log to stderr
-        :type stderr: bool
+        :param warning: Whether or not this is a warning (default: false)
+        :type warning: bool
         :param progress: Whether to progress the task
         :type progress: bool
         """
-        output = f"\n__STEP_NO_PROGRESS__: {message}"
-        if stderr:
-            print(output, file=sys.stderr)
-        else:
-            print(output)
+        step_type = "STEP_NO_PROGRESS"
+        if warning:
+            step_type += "_WARNING"
+        print(f"\n__{step_type}__: {message}")
